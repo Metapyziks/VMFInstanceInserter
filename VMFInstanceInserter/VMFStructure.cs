@@ -116,19 +116,41 @@ namespace VMFInstanceInserter
             {
                 KeyValuePair<String, VMFValue> kvClone = new KeyValuePair<string, VMFValue>( keyVal.Key, keyVal.Value.Clone() );
 
-                if ( kvClone.Key == "groupid" )
-                    ( (VMFNumberValue) kvClone.Value ).Value += idOffset;
-                else if ( kvClone.Key == "targetname" && fixupStyle != TargetNameFixupStyle.None && targetName != null )
+                if ( Type == VMFStructureType.Connections )
                 {
-                    switch ( fixupStyle )
+                    if ( fixupStyle != TargetNameFixupStyle.None && targetName != null )
                     {
-                        case TargetNameFixupStyle.Prefix:
-                            ( (VMFStringValue) kvClone.Value ).String = targetName + ( (VMFStringValue) kvClone.Value ).String;
-                            break;
-                        case TargetNameFixupStyle.Postfix:
-                            ( (VMFStringValue) kvClone.Value ).String = ( (VMFStringValue) kvClone.Value ).String + targetName;
-                            break;
-
+                        String[] split = kvClone.Value.String.Split( ',' );
+                        if ( split[ 0 ].Length > 0 )
+                        {
+                            switch ( fixupStyle )
+                            {
+                                case TargetNameFixupStyle.Prefix:
+                                    split[ 0 ] = targetName + split[ 0 ];
+                                    break;
+                                case TargetNameFixupStyle.Postfix:
+                                    split[ 0 ] = split[ 0 ] + targetName;
+                                    break;
+                            }
+                        }
+                        kvClone.Value.String = String.Join( ",", split );
+                    }
+                }
+                else
+                {
+                    if ( kvClone.Key == "groupid" )
+                        ( (VMFNumberValue) kvClone.Value ).Value += idOffset;
+                    else if ( kvClone.Key == "targetname" && fixupStyle != TargetNameFixupStyle.None && targetName != null )
+                    {
+                        switch ( fixupStyle )
+                        {
+                            case TargetNameFixupStyle.Prefix:
+                                ( (VMFStringValue) kvClone.Value ).String = targetName + ( (VMFStringValue) kvClone.Value ).String;
+                                break;
+                            case TargetNameFixupStyle.Postfix:
+                                ( (VMFStringValue) kvClone.Value ).String = ( (VMFStringValue) kvClone.Value ).String + targetName;
+                                break;
+                        }
                     }
                 }
 
