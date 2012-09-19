@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Diagnostics;
 
 namespace VMFInstanceInserter
 {
@@ -12,22 +13,22 @@ namespace VMFInstanceInserter
         {
             // TODO: Add complete argument parsing
 
-            String game = "";
-            String vmf = "";
-
-            for ( int i = 0; i < args.Length; ++i )
+            if ( args.Length < 1 )
             {
-                String arg = args[ i ];
-                if ( arg == "-game" )
-                    game = args[ ++i ];
-                else
-                    vmf = arg;
+                Console.WriteLine( "Unexpected arguments. Aborting..." );
+                return;
             }
 
-            VMFFile file = new VMFFile( vmf );
-            file.Save( "test.vmf" );
+            String vmf = args[ 0 ];
+            String dest = ( args.Length >= 2 ? args[ 1 ] : null );
 
+            VMFFile file = new VMFFile( vmf );
+            file.ResolveInstances();
+            file.Save( dest );
+#if DEBUG
+            Console.WriteLine( "Press any key to exit..." );
             Console.ReadKey();
+#endif
         }
     }
 }

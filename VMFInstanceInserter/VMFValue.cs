@@ -51,6 +51,26 @@ namespace VMFInstanceInserter
 
         public abstract String String { get; set; }
 
+        public virtual VMFValue Clone()
+        {
+            return Parse( String );
+        }
+
+        public virtual void Offset( VMFVector3Value vector )
+        {
+            return;
+        }
+
+        public virtual void Rotate( VMFVector3Value angles )
+        {
+            return;
+        }
+
+        public virtual void AddAngles( VMFVector3Value angles )
+        {
+            return;
+        }
+
         public override string ToString()
         {
             return String;
@@ -69,6 +89,11 @@ namespace VMFInstanceInserter
             get { return myString; }
             set { myString = value; }
         }
+
+        public override VMFValue Clone()
+        {
+            return new VMFStringValue { String = this.String };
+        }
     }
 
     public class VMFNumberValue : VMFValue
@@ -82,6 +107,11 @@ namespace VMFInstanceInserter
         {
             get { return Value.ToString(); }
             set { Value = double.Parse( value ); }
+        }
+
+        public override VMFValue Clone()
+        {
+            return new VMFNumberValue { Value = this.Value };
         }
     }
 
@@ -115,6 +145,11 @@ namespace VMFInstanceInserter
                 Y = y;
             }
         }
+
+        public override VMFValue Clone()
+        {
+            return new VMFVector2Value { X = this.X, Y = this.Y };
+        }
     }
 
     public class VMFVector3Value : VMFValue
@@ -127,6 +162,22 @@ namespace VMFInstanceInserter
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
+
+        public double Pitch
+        {
+            get { return X; }
+            set { X = value; }
+        }
+        public double Roll
+        {
+            get { return Y; }
+            set { Y = value; }
+        }
+        public double Yaw
+        {
+            get { return Z; }
+            set { Z = value; }
+        }
 
         public override string String
         {
@@ -150,6 +201,29 @@ namespace VMFInstanceInserter
                 Y = y;
                 Z = z;
             }
+        }
+
+        public override VMFValue Clone()
+        {
+            return new VMFVector3Value { X = this.X, Y = this.Y, Z = this.Z };
+        }
+
+        public override void Offset( VMFVector3Value vector )
+        {
+            X += vector.X;
+            Y += vector.Y;
+            Z += vector.Z;
+        }
+
+        public override void AddAngles( VMFVector3Value angles )
+        {
+            Pitch += angles.Pitch;
+            Roll += angles.Roll;
+            Yaw += angles.Yaw;
+
+            Pitch -= Math.Floor( Pitch / 360.0 ) * 360.0;
+            Roll -= Math.Floor( Roll / 360.0 ) * 360.0;
+            Yaw -= Math.Floor( Yaw / 360.0 ) * 360.0;
         }
     }
 
@@ -191,6 +265,11 @@ namespace VMFInstanceInserter
                 A = a;
             }
         }
+
+        public override VMFValue Clone()
+        {
+            return new VMFVector4Value { R = this.R, G = this.G, B = this.B, A = this.A };
+        }
     }
 
     public class VMFTextureInfoValue : VMFValue
@@ -220,6 +299,11 @@ namespace VMFInstanceInserter
                 Pan = double.Parse( value.Substring( split2, split3 - split2 - 1 ) );
                 Scale = double.Parse( value.Substring( split3 ) );
             }
+        }
+
+        public override VMFValue Clone()
+        {
+            return new VMFTextureInfoValue { Direction = (VMFVector3Value) this.Direction.Clone(), Pan = this.Pan, Scale = this.Scale };
         }
     }
 
@@ -254,6 +338,27 @@ namespace VMFInstanceInserter
                     Vectors[ i ].String = vects[ i ];
                 }
             }
+        }
+
+        public override VMFValue Clone()
+        {
+            VMFVector3ArrayValue arr = new VMFVector3ArrayValue();
+            arr.Vectors = new VMFVector3Value[ Vectors.Length ];
+            for ( int i = 0; i < Vectors.Length; ++i )
+                arr.Vectors[ i ] = (VMFVector3Value) Vectors[ i ].Clone();
+            return arr;
+        }
+
+        public override void Offset( VMFVector3Value vector )
+        {
+            foreach ( VMFVector3Value vec in Vectors )
+                vec.Offset( vector );
+        }
+
+        public override void AddAngles( VMFVector3Value angles )
+        {
+            foreach ( VMFVector3Value vec in Vectors )
+                vec.AddAngles( angles );
         }
     }
 }

@@ -7,3 +7,7 @@ TestResults
 
 # User Options
 *.suo
+*.csproj.user
+
+# Valve map something-or-other
+*.vmx
