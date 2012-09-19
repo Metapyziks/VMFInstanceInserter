@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <StartArguments>-game "C:\Program Files (x86)\Steam\steamapps\robertandsherman\garry's mod beta\garrysmodbeta" "C:\Program Files (x86)\Steam\steamapps\robertandsherman\garrysmod\garrysmod\maps\vmf\ftl_default.vmf"</StartArguments>
+    <StartWorkingDirectory>
+    </StartWorkingDirectory>
+  </PropertyGroup>
+</Project>
