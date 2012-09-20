@@ -2,7 +2,7 @@ versioninfo
 {
 	"editorversion" "400"
 	"editorbuild" "5439"
-	"mapversion" "4"
+	"mapversion" "11"
 	"formatversion" "100"
 	"prefab" "0"
 }
@@ -20,7 +20,7 @@ viewsettings
 world
 {
 	"id" "1"
-	"mapversion" "4"
+	"mapversion" "11"
 	"classname" "worldspawn"
 	"detailmaterial" "detail/detailsprites"
 	"detailvbsp" "detail.vbsp"
@@ -44,7 +44,7 @@ world
 		{
 			"id" "2"
 			"plane" "(-256 -256 256) (256 -256 256) (256 256 256)"
-			"material" "DEV/DEV_MEASUREWALL01A"
+			"material" "DEV/REFLECTIVITY_50"
 			"uaxis" "[1 0 0 0] 0.25"
 			"vaxis" "[0 -1 0 0] 0.25"
 			"rotation" "0"
@@ -142,7 +142,7 @@ world
 		{
 			"id" "10"
 			"plane" "(-256 256 0) (-256 -256 0) (-256 -256 256)"
-			"material" "DEV/DEV_MEASUREWALL01A"
+			"material" "DEV/REFLECTIVITY_50"
 			"uaxis" "[0 1 0 0] 0.25"
 			"vaxis" "[0 0 -1 0] 0.25"
 			"rotation" "0"
@@ -283,7 +283,7 @@ world
 		{
 			"id" "21"
 			"plane" "(256 256 256) (256 -256 256) (256 -256 0)"
-			"material" "DEV/DEV_MEASUREWALL01A"
+			"material" "DEV/REFLECTIVITY_50"
 			"uaxis" "[0 1 0 0] 0.25"
 			"vaxis" "[0 0 -1 0] 0.25"
 			"rotation" "0"
@@ -392,7 +392,7 @@ world
 		{
 			"id" "30"
 			"plane" "(256 256 0) (-256 256 0) (-256 256 256)"
-			"material" "DEV/DEV_MEASUREWALL01A"
+			"material" "DEV/REFLECTIVITY_50"
 			"uaxis" "[1 0 0 0] 0.25"
 			"vaxis" "[0 0 -1 0] 0.25"
 			"rotation" "0"
@@ -457,7 +457,7 @@ world
 		{
 			"id" "35"
 			"plane" "(256 -256 256) (-256 -256 256) (-256 -256 0)"
-			"material" "DEV/DEV_MEASUREWALL01A"
+			"material" "DEV/REFLECTIVITY_50"
 			"uaxis" "[1 0 0 0] 0.25"
 			"vaxis" "[0 0 -1 0] 0.25"
 			"rotation" "0"
@@ -482,6 +482,82 @@ world
 			"visgroupautoshown" "1"
 		}
 	}
+	solid
+	{
+		"id" "125"
+		side
+		{
+			"id" "43"
+			"plane" "(-32 32 32) (32 32 32) (32 -32 32)"
+			"material" "DEV/DEV_MEASUREHALL01"
+			"uaxis" "[1 0 0 128] 0.25"
+			"vaxis" "[0 -1 0 128] 0.25"
+			"rotation" "0"
+			"lightmapscale" "16"
+			"smoothing_groups" "0"
+		}
+		side
+		{
+			"id" "44"
+			"plane" "(-32 -32 0) (32 -32 0) (32 32 0)"
+			"material" "DEV/DEV_MEASUREHALL01"
+			"uaxis" "[1 0 0 128] 0.25"
+			"vaxis" "[0 -1 0 128] 0.25"
+			"rotation" "0"
+			"lightmapscale" "16"
+			"smoothing_groups" "0"
+		}
+		side
+		{
+			"id" "45"
+			"plane" "(-32 32 32) (-32 -32 32) (-32 -32 0)"
+			"material" "DEV/DEV_MEASUREHALL01"
+			"uaxis" "[0 1 0 128] 0.25"
+			"vaxis" "[0 0 -1 128] 0.25"
+			"rotation" "0"
+			"lightmapscale" "16"
+			"smoothing_groups" "0"
+		}
+		side
+		{
+			"id" "46"
+			"plane" "(32 32 0) (32 -32 0) (32 -32 32)"
+			"material" "DEV/DEV_MEASUREHALL01"
+			"uaxis" "[0 1 0 128] 0.25"
+			"vaxis" "[0 0 -1 128] 0.25"
+			"rotation" "0"
+			"lightmapscale" "16"
+			"smoothing_groups" "0"
+		}
+		side
+		{
+			"id" "47"
+			"plane" "(32 32 32) (-32 32 32) (-32 32 0)"
+			"material" "DEV/DEV_MEASUREHALL01"
+			"uaxis" "[1 0 0 128] 0.25"
+			"vaxis" "[0 0 -1 128] 0.25"
+			"rotation" "0"
+			"lightmapscale" "16"
+			"smoothing_groups" "0"
+		}
+		side
+		{
+			"id" "48"
+			"plane" "(32 -32 0) (-32 -32 0) (-32 -32 32)"
+			"material" "DEV/DEV_MEASUREHALL01"
+			"uaxis" "[1 0 0 128] 0.25"
+			"vaxis" "[0 0 -1 128] 0.25"
+			"rotation" "0"
+			"lightmapscale" "16"
+			"smoothing_groups" "0"
+		}
+		editor
+		{
+			"color" "0 128 113"
+			"visgroupshown" "1"
+			"visgroupautoshown" "1"
+		}
+	}
 }
 entity
 {
@@ -502,7 +578,7 @@ entity
 	"id" "31"
 	"classname" "func_instance"
 	"angles" "-0 0 0"
-	"file" "gm_insttest_box.vmf"
+	"file" "instancetest_box.vmf"
 	"fixup_style" "1"
 	"targetname" "_4"
 	"origin" "128 128 0"
@@ -519,7 +595,7 @@ entity
 	"id" "61"
 	"classname" "func_instance"
 	"angles" "-0 0 0"
-	"file" "gm_insttest_box.vmf"
+	"file" "instancetest_box.vmf"
 	"fixup_style" "1"
 	"targetname" "_3"
 	"origin" "-128 128 0"
@@ -536,7 +612,7 @@ entity
 	"id" "73"
 	"classname" "func_instance"
 	"angles" "-0 0 0"
-	"file" "gm_insttest_box.vmf"
+	"file" "instancetest_box.vmf"
 	"fixup_style" "1"
 	"targetname" "_2"
 	"origin" "-128 -128 0"
@@ -553,7 +629,7 @@ entity
 	"id" "76"
 	"classname" "func_instance"
 	"angles" "-0 0 0"
-	"file" "gm_insttest_box.vmf"
+	"file" "instancetest_box.vmf"
 	"fixup_style" "1"
 	"targetname" "_1"
 	"origin" "128 -128 0"
@@ -567,19 +643,19 @@ entity
 }
 entity
 {
-	"id" "85"
+	"id" "136"
 	"classname" "light"
-	"_light" "255 255 255 200"
+	"_light" "255 255 255 50"
 	"_lightHDR" "-1 -1 -1 1"
 	"_lightscaleHDR" "1"
 	"_quadratic_attn" "1"
-	"origin" "0 0 128"
+	"origin" "0 0 64"
 	editor
 	{
 		"color" "220 30 220"
 		"visgroupshown" "1"
 		"visgroupautoshown" "1"
-		"logicalpos" "[0 4000]"
+		"logicalpos" "[0 0]"
 	}
 }
 cameras
@@ -587,8 +663,8 @@ cameras
 	"activecamera" "0"
 	camera
 	{
-		"position" "[-57.9818 220.346 243.015]"
-		"look" "[-53.8942 199.894 220.268]"
+		"position" "[240.998 81.6058 185.277]"
+		"look" "[213.236 81.1685 171.805]"
 	}
 }
 cordon

@@ -1,4 +1,4 @@
-# Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
+# Build Folders
 bin
 obj
 
@@ -9,5 +9,8 @@ TestResults
 *.suo
 *.csproj.user
 
-# Valve map something-or-other
+# Hammer junk
 *.vmx
+*.bsp
+*.log
+*.prt
