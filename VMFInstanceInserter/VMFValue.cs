@@ -158,6 +158,7 @@ namespace VMFInstanceInserter
         public static readonly int Order = 3;
 
         private bool myInSqBracs;
+        private double[,] myRotationMatrix;
 
         public double X { get; set; }
         public double Y { get; set; }
@@ -168,15 +169,26 @@ namespace VMFInstanceInserter
             get { return X; }
             set { X = value; }
         }
-        public double Roll
+        public double Yaw
         {
             get { return Y; }
             set { Y = value; }
         }
-        public double Yaw
+        public double Roll
         {
             get { return Z; }
             set { Z = value; }
+        }
+
+        public double[ , ] RotationMatrix
+        {
+            get
+            {
+                if ( myRotationMatrix == null )
+                    GenerateRotationMatrix();
+
+                return myRotationMatrix;
+            }
         }
 
         public override string String
@@ -208,6 +220,46 @@ namespace VMFInstanceInserter
             return new VMFVector3Value { X = this.X, Y = this.Y, Z = this.Z, myInSqBracs = this.myInSqBracs };
         }
 
+        private void GenerateRotationMatrix()
+        {
+            double cosA, sinA, cosB, sinB, cosC, sinC;
+
+            GetCosAndSin( 360 - Yaw, out cosA, out sinA );
+            GetCosAndSin( Pitch, out cosB, out sinB );
+            GetCosAndSin( Roll, out cosC, out sinC );
+
+            myRotationMatrix = new double[ , ]
+            {
+                { cosA * cosB, cosA * sinB * sinC - sinA * cosC, cosA * sinB * cosC + sinA * sinC },
+                { sinA * cosB, sinA * sinB * sinC + cosA * cosC, sinA * sinB * cosC - cosA * sinC },
+                { -sinB, sinB * sinC, cosB * cosC }
+            };
+        }
+
+        private void GetCosAndSin( double angle, out double cos, out double sin )
+        {
+            angle -= Math.Floor( angle / 360.0 ) * 360.0;
+            if ( angle == Math.Round( angle ) )
+            {
+                switch ( (int) angle )
+                {
+                    case 0:
+                        cos = 1; sin = 0; return;
+                    case 90:
+                        cos = 0; sin = 1; return;
+                    case 180:
+                        cos = -1; sin = 0; return;
+                    case 270:
+                        cos = 0; sin = -1; return;
+                }
+            }
+
+            angle = angle * Math.PI / 180;
+
+            cos = Math.Cos( angle ); sin = Math.Sin( angle );
+            return;
+        }
+
         public double Dot( VMFVector3Value vector )
         {
             return this.X * vector.X + this.Y * vector.Y + this.Z * vector.Z;
@@ -218,6 +270,17 @@ namespace VMFInstanceInserter
             X += vector.X;
             Y += vector.Y;
             Z += vector.Z;
+        }
+
+        public override void Rotate( VMFVector3Value angles )
+        {
+            double[ , ] mat = angles.RotationMatrix;
+
+            double yaw = Yaw, pitch = Pitch, roll = Roll;
+
+            Yaw = yaw * mat[ 0, 0 ] + pitch * mat[ 0, 1 ] + roll * mat[ 0, 2 ];
+            Pitch = yaw * mat[ 1, 0 ] + pitch * mat[ 1, 1 ] + roll * mat[ 1, 2 ];
+            Roll = yaw * mat[ 2, 0 ] + pitch * mat[ 2, 1 ] + roll * mat[ 2, 2 ];
         }
 
         public override void AddAngles( VMFVector3Value angles )
@@ -311,6 +374,11 @@ namespace VMFInstanceInserter
             Pan -= Direction.Dot( vector ) / Scale;
         }
 
+        public override void Rotate( VMFVector3Value angles )
+        {
+            Direction.Rotate( angles );
+        }
+
         public override VMFValue Clone()
         {
             return new VMFTextureInfoValue { Direction = (VMFVector3Value) this.Direction.Clone(), Pan = this.Pan, Scale = this.Scale };
@@ -369,6 +437,12 @@ namespace VMFInstanceInserter
         {
             foreach ( VMFVector3Value vec in Vectors )
                 vec.AddAngles( angles );
+        }
+
+        public override void Rotate( VMFVector3Value angles )
+        {
+            foreach ( VMFVector3Value vec in Vectors )
+                vec.Rotate( angles );
         }
     }
 }
