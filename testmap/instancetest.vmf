@@ -2,7 +2,7 @@ versioninfo
 {
 	"editorversion" "400"
 	"editorbuild" "5439"
-	"mapversion" "11"
+	"mapversion" "15"
 	"formatversion" "100"
 	"prefab" "0"
 }
@@ -14,13 +14,13 @@ viewsettings
 	"bSnapToGrid" "1"
 	"bShowGrid" "1"
 	"bShowLogicalGrid" "0"
-	"nGridSpacing" "32"
+	"nGridSpacing" "8"
 	"bShow3DGrid" "0"
 }
 world
 {
 	"id" "1"
-	"mapversion" "11"
+	"mapversion" "15"
 	"classname" "worldspawn"
 	"detailmaterial" "detail/detailsprites"
 	"detailvbsp" "detail.vbsp"
@@ -581,7 +581,7 @@ entity
 	"file" "instancetest_box.vmf"
 	"fixup_style" "1"
 	"targetname" "_4"
-	"origin" "128 128 0"
+	"origin" "96 128 0"
 	editor
 	{
 		"color" "220 30 220"
@@ -615,7 +615,7 @@ entity
 	"file" "instancetest_box.vmf"
 	"fixup_style" "1"
 	"targetname" "_2"
-	"origin" "-128 -128 0"
+	"origin" "-128 -96 0"
 	editor
 	{
 		"color" "220 30 220"
@@ -632,7 +632,7 @@ entity
 	"file" "instancetest_box.vmf"
 	"fixup_style" "1"
 	"targetname" "_1"
-	"origin" "128 -128 0"
+	"origin" "96 -96 0"
 	editor
 	{
 		"color" "220 30 220"
@@ -663,8 +663,8 @@ cameras
 	"activecamera" "0"
 	camera
 	{
-		"position" "[240.998 81.6058 185.277]"
-		"look" "[213.236 81.1685 171.805]"
+		"position" "[19.348 -225.752 257.556]"
+		"look" "[19.6921 -207.79 232.463]"
 	}
 }
 cordon

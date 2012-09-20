@@ -48,8 +48,8 @@ namespace VMFInstanceInserter
             { VMFStructureType.Side, new Dictionary<String, TransformType>
             {
                 { "plane", TransformType.Position },
-                { "uaxis", TransformType.Angle },
-                { "vaxis", TransformType.Angle }
+                { "uaxis", TransformType.Position },
+                { "vaxis", TransformType.Position }
             } },
             { VMFStructureType.Entity, new Dictionary<String, TransformType>
             {

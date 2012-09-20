@@ -148,7 +148,7 @@ namespace VMFInstanceInserter
 
         public override VMFValue Clone()
         {
-            return new VMFVector2Value { X = this.X, Y = this.Y };
+            return new VMFVector2Value { X = this.X, Y = this.Y, myInSqBracs = this.myInSqBracs };
         }
     }
 
@@ -205,7 +205,12 @@ namespace VMFInstanceInserter
 
         public override VMFValue Clone()
         {
-            return new VMFVector3Value { X = this.X, Y = this.Y, Z = this.Z };
+            return new VMFVector3Value { X = this.X, Y = this.Y, Z = this.Z, myInSqBracs = this.myInSqBracs };
+        }
+
+        public double Dot( VMFVector3Value vector )
+        {
+            return this.X * vector.X + this.Y * vector.Y + this.Z * vector.Z;
         }
 
         public override void Offset( VMFVector3Value vector )
@@ -268,7 +273,7 @@ namespace VMFInstanceInserter
 
         public override VMFValue Clone()
         {
-            return new VMFVector4Value { R = this.R, G = this.G, B = this.B, A = this.A };
+            return new VMFVector4Value { R = this.R, G = this.G, B = this.B, A = this.A, myInSqBracs = this.myInSqBracs };
         }
     }
 
@@ -299,6 +304,11 @@ namespace VMFInstanceInserter
                 Pan = double.Parse( value.Substring( split2, split3 - split2 - 1 ) );
                 Scale = double.Parse( value.Substring( split3 ) );
             }
+        }
+
+        public override void Offset( VMFVector3Value vector )
+        {
+            Pan -= Direction.Dot( vector ) / Scale;
         }
 
         public override VMFValue Clone()
