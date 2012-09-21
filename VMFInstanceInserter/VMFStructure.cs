@@ -321,6 +321,19 @@ namespace VMFInstanceInserter
             return new VMFStructure( this, idOffset, fixupStyle, targetName );
         }
 
+        public void ReplaceProperties( Dictionary<String, VMFValue> dict )
+        {
+            if ( Type == VMFStructureType.Entity )
+            {
+                for ( int i = 0; i < Properties.Count; ++i )
+                {
+                    KeyValuePair<String, VMFValue> keyVal = Properties[ i ];
+                    if ( dict.ContainsKey( keyVal.Key ) )
+                        Properties[ i ] = new KeyValuePair<string, VMFValue>( keyVal.Key, dict[ keyVal.Key ].Clone() );
+                }
+            }
+        }
+
         public void Transform( VMFVector3Value translation, VMFVector3Value rotation )
         {
             Dictionary<String, TransformType> transDict = null;

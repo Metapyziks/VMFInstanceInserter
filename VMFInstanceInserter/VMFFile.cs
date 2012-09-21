@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace VMFInstanceInserter
 {
@@ -63,6 +64,29 @@ namespace VMFInstanceInserter
                         VMFNumberValue fixup_styleVal = ( structure[ "fixup_style" ] as VMFNumberValue ) ?? new VMFNumberValue { Value = 0 };
                         VMFValue targetnameVal = structure[ "targetname" ];
 
+                        Regex pattern = new Regex( "^replace[0-9]*$" );
+                        Dictionary<String, VMFValue> replacements = new Dictionary<string, VMFValue>();
+
+                        foreach ( KeyValuePair<String, VMFValue> keyVal in structure.Properties )
+                        {
+                            if ( pattern.IsMatch( keyVal.Key ) )
+                            {
+                                String[] split = keyVal.Value.String.Split( new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries );
+                                for ( int j = 0; j < split.Length; ++j )
+                                {
+                                    if ( split[ j ].StartsWith( "$" ) )
+                                        continue;
+
+                                    VMFValue replacement = VMFValue.Parse( String.Join( " ", split, j, split.Length - j ) );
+
+                                    for ( int k = 0; k < j; ++k )
+                                        replacements.Add( split[ k ].Substring( 1 ), replacement );
+
+                                    break;
+                                }
+                            }
+                        }
+
                         TargetNameFixupStyle fixupStyle = (TargetNameFixupStyle) fixup_styleVal.Value;
                         String targetName = ( targetnameVal != null ? targetnameVal.String : null );
 
@@ -98,15 +122,16 @@ namespace VMFInstanceInserter
                             }
                         }
 
-                        int j = i;
+                        int index = i;
 
                         foreach ( VMFStructure rootStruct in vmf.Root )
                         {
                             if ( rootStruct.Type == VMFStructureType.Entity )
                             {
                                 VMFStructure clone = rootStruct.Clone( LastID, fixupStyle, targetName );
+                                clone.ReplaceProperties( replacements );
                                 clone.Transform( originVal, anglesVal );
-                                Root.Structures.Insert( j++, clone );
+                                Root.Structures.Insert( index++, clone );
                                 LastID = Math.Max( LastID, clone.GetLastID() ); // Probably don't need the Max()
                             }
                         }
