@@ -32,7 +32,8 @@ namespace VMFInstanceInserter
         None = 0,
         Offset = 1,
         Angle = 2,
-        Position = 3
+        Position = 3,
+        EntityName = 4
     }
 
     enum TargetNameFixupStyle
@@ -122,6 +123,14 @@ namespace VMFInstanceInserter
                                         else
                                             stEntitiesDict[ obj.Name ].Add( keyVal.Key, TransformType.Position );
                                         break;
+                                    case "e":
+                                    case "ent":
+                                    case "entity":
+                                        if ( stEntitiesDict[ obj.Name ].ContainsKey( keyVal.Key ) )
+                                            stEntitiesDict[ obj.Name ][ keyVal.Key ] = TransformType.EntityName;
+                                        else
+                                            stEntitiesDict[ obj.Name ].Add( keyVal.Key, TransformType.EntityName );
+                                        break;
                                     default:
                                         Console.WriteLine( "Bad definition for " + obj.Name + "." + keyVal.Key + ": " + str );
                                         break;
@@ -186,6 +195,15 @@ namespace VMFInstanceInserter
 
             myIDIndex = clone.myIDIndex;
 
+            Dictionary<String, TransformType> entDict = null;
+
+            if ( Type == VMFStructureType.Entity )
+            {
+                String className = clone[ "classname" ].String;
+                if ( className != null && stEntitiesDict.ContainsKey( className ) )
+                    entDict = stEntitiesDict[ className ];
+            }
+
             foreach ( KeyValuePair<String, VMFValue> keyVal in clone.Properties )
             {
                 KeyValuePair<String, VMFValue> kvClone = new KeyValuePair<string, VMFValue>( keyVal.Key, keyVal.Value.Clone() );
@@ -214,7 +232,8 @@ namespace VMFInstanceInserter
                 {
                     if ( kvClone.Key == "groupid" )
                         ( (VMFNumberValue) kvClone.Value ).Value += idOffset;
-                    else if ( kvClone.Key == "targetname" && fixupStyle != TargetNameFixupStyle.None && targetName != null )
+                    else if ( ( kvClone.Key == "targetname" || ( entDict != null && entDict.ContainsKey( keyVal.Key ) && entDict[ keyVal.Key ] == TransformType.EntityName ) )
+                        && fixupStyle != TargetNameFixupStyle.None && targetName != null )
                     {
                         switch ( fixupStyle )
                         {
