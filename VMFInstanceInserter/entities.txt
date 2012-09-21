@@ -1,0 +1,8 @@
+(ent) "func_button" :
+{
+	"movedir" : "angle"
+},
+(ent) "func_door" :
+{
+	"movedir" : "angle"
+}

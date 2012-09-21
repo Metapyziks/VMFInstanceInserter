@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Reflection;
+
+using ResourceLib;
 
 namespace VMFInstanceInserter
 {
@@ -59,12 +62,83 @@ namespace VMFInstanceInserter
             } }
         };
 
+        private static readonly Dictionary<String, Dictionary<String, TransformType>> stEntitiesDict = new Dictionary<String, Dictionary<string, TransformType>>();
+
         static VMFStructure()
         {
             stTypeDict = new Dictionary<string, VMFStructureType>();
 
             foreach ( String name in Enum.GetNames( typeof( VMFStructureType ) ) )
                 stTypeDict.Add( name.ToLower(), (VMFStructureType) Enum.Parse( typeof( VMFStructureType ), name ) );
+
+            String infoPath = Path.GetDirectoryName( Assembly.GetExecutingAssembly().Location ) + Path.DirectorySeparatorChar + "entities.txt";
+
+            if ( File.Exists( infoPath ) )
+            {
+                Console.WriteLine( "Loading entities.txt" );
+
+                try
+                {
+                    foreach ( InfoObject obj in Info.ParseFile( infoPath ) )
+                    {
+                        if ( !stEntitiesDict.ContainsKey( obj.Name ) )
+                            stEntitiesDict.Add( obj.Name, new Dictionary<string, TransformType>() );
+
+                        foreach ( KeyValuePair<String, InfoValue> keyVal in obj )
+                        {
+                            if ( keyVal.Value is InfoString )
+                            {
+                                String str = keyVal.Value.AsString().ToLower();
+                                switch ( str )
+                                {
+                                    case "n":
+                                    case "null":
+                                    case "nil":
+                                    case "none":
+                                        if ( stEntitiesDict[ obj.Name ].ContainsKey( keyVal.Key ) )
+                                            stEntitiesDict[ obj.Name ].Remove( keyVal.Key );
+                                        break;
+                                    case "o":
+                                    case "off":
+                                    case "offset":
+                                        if ( stEntitiesDict[ obj.Name ].ContainsKey( keyVal.Key ) )
+                                            stEntitiesDict[ obj.Name ][ keyVal.Key ] = TransformType.Offset;
+                                        else
+                                            stEntitiesDict[ obj.Name ].Add( keyVal.Key, TransformType.Offset );
+                                        break;
+                                    case "a":
+                                    case "ang":
+                                    case "angle":
+                                        if ( stEntitiesDict[ obj.Name ].ContainsKey( keyVal.Key ) )
+                                            stEntitiesDict[ obj.Name ][ keyVal.Key ] = TransformType.Angle;
+                                        else
+                                            stEntitiesDict[ obj.Name ].Add( keyVal.Key, TransformType.Angle );
+                                        break;
+                                    case "p":
+                                    case "pos":
+                                    case "position":
+                                        if ( stEntitiesDict[ obj.Name ].ContainsKey( keyVal.Key ) )
+                                            stEntitiesDict[ obj.Name ][ keyVal.Key ] = TransformType.Position;
+                                        else
+                                            stEntitiesDict[ obj.Name ].Add( keyVal.Key, TransformType.Position );
+                                        break;
+                                    default:
+                                        Console.WriteLine( "Bad definition for " + obj.Name + "." + keyVal.Key + ": " + str );
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine( "Error while reading entities.txt" );
+                }
+            }
+            else
+            {
+                Console.WriteLine( "File entities.txt not found!" );
+            }
         }
 
         private int myIDIndex;
@@ -230,28 +304,43 @@ namespace VMFInstanceInserter
 
         public void Transform( VMFVector3Value translation, VMFVector3Value rotation )
         {
-            if ( stTransformDict.ContainsKey( Type ) )
-            {
-                Dictionary<String, TransformType> transDict = stTransformDict[ Type ];
+            Dictionary<String, TransformType> transDict = null;
+            Dictionary<String, TransformType> entDict = null;
 
+            if ( stTransformDict.ContainsKey( Type ) )
+                transDict = stTransformDict[ Type ];
+
+            if ( Type == VMFStructureType.Entity )
+            {
+                String className = this[ "classname" ].String;
+                if ( className != null && stEntitiesDict.ContainsKey( className ) )
+                    entDict = stEntitiesDict[ className ];
+            }
+
+            if ( transDict != null || entDict != null )
+            {
                 foreach ( KeyValuePair<String, VMFValue> keyVal in Properties )
                 {
-                    if ( transDict.ContainsKey( keyVal.Key ) )
+                    TransformType trans = TransformType.None;
+
+                    if ( transDict != null && transDict.ContainsKey( keyVal.Key ) )
+                        trans = transDict[ keyVal.Key ];
+
+                    if ( entDict != null && entDict.ContainsKey( keyVal.Key ) )
+                        trans = entDict[ keyVal.Key ];
+
+                    switch ( trans )
                     {
-                        TransformType trans = transDict[ keyVal.Key ];
-                        switch ( trans )
-                        {
-                            case TransformType.Offset:
-                                keyVal.Value.Rotate( rotation );
-                                break;
-                            case TransformType.Angle:
-                                keyVal.Value.AddAngles( rotation );
-                                break;
-                            case TransformType.Position:
-                                keyVal.Value.Rotate( rotation );
-                                keyVal.Value.Offset( translation );
-                                break;
-                        }
+                        case TransformType.Offset:
+                            keyVal.Value.Rotate( rotation );
+                            break;
+                        case TransformType.Angle:
+                            keyVal.Value.AddAngles( rotation );
+                            break;
+                        case TransformType.Position:
+                            keyVal.Value.Rotate( rotation );
+                            keyVal.Value.Offset( translation );
+                            break;
                     }
                 }
             }
