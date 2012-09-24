@@ -25,8 +25,16 @@ namespace VMFInstanceInserter
             OriginalPath = path;
             DestinationPath = Path.GetDirectoryName( path ) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension( path ) + ".temp.vmf";
 
-            using ( FileStream stream = new FileStream( path, FileMode.Open, FileAccess.Read ) )
-                Root = new VMFStructure( "file", new StreamReader( stream ) );
+            try
+            {
+                using ( FileStream stream = new FileStream( path, FileMode.Open, FileAccess.Read ) )
+                    Root = new VMFStructure( "file", new StreamReader( stream ) );
+            }
+            catch
+            {
+                Console.WriteLine( "Error while parsing file!" );
+                return;
+            }
 
             foreach ( VMFStructure stru in Root )
             {
@@ -108,7 +116,14 @@ namespace VMFInstanceInserter
                         else
                         {
                             vmf = new VMFFile( Path.GetDirectoryName( OriginalPath ) + Path.DirectorySeparatorChar + file );
-                            vmf.ResolveInstances();
+                            if ( vmf.Root != null )
+                                vmf.ResolveInstances();
+                        }
+
+                        if ( vmf.Root == null )
+                        {
+                            Console.WriteLine( "Could not insert!" );
+                            continue;
                         }
 
                         foreach ( VMFStructure worldStruct in vmf.World )

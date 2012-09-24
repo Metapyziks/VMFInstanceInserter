@@ -24,7 +24,18 @@ namespace VMFInstanceInserter
         Group,
         Cameras,
         Camera,
-        Cordon
+        Cordon,
+        Visgroup,
+        DispInfo,
+        Hidden,
+        Normals,
+        Distances,
+        Offsets,
+        Offset_Normals,
+        Alphas,
+        Triangle_Tags,
+        Allowed_Verts,
+        Unknown
     }
 
     enum TransformType
@@ -258,7 +269,10 @@ namespace VMFInstanceInserter
 
         public VMFStructure( String type, StreamReader reader )
         {
-            Type = stTypeDict[ type ];
+            if ( stTypeDict.ContainsKey( type ) )
+                Type = stTypeDict[ type ];
+            else
+                Type = VMFStructureType.Unknown;
 
             Properties = new List<KeyValuePair<String, VMFValue>>();
             Structures = new List<VMFStructure>();
