@@ -30,9 +30,10 @@ namespace VMFInstanceInserter
                 using ( FileStream stream = new FileStream( path, FileMode.Open, FileAccess.Read ) )
                     Root = new VMFStructure( "file", new StreamReader( stream ) );
             }
-            catch
+            catch( Exception e )
             {
                 Console.WriteLine( "Error while parsing file!" );
+                Console.WriteLine( e.ToString() );
                 return;
             }
 

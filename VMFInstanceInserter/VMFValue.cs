@@ -41,7 +41,14 @@ namespace VMFInstanceInserter
                 if ( type.Item2.IsMatch( str ) )
                 {
                     VMFValue val = (VMFValue) type.Item1.Invoke( new object[ 0 ] );
-                    val.String = str;
+                    try
+                    {
+                        val.String = str;
+                    }
+                    catch
+                    {
+                        Console.WriteLine( "Error while parsing \"" + str + "\"!" );
+                    }
                     return val;
                 }
             }
@@ -364,8 +371,20 @@ namespace VMFInstanceInserter
 
                 Direction.String = value.Substring( 1, split2 - 1 );
 
-                Pan = double.Parse( value.Substring( split2, split3 - split2 - 1 ) );
-                Scale = double.Parse( value.Substring( split3 ) );
+                try
+                {
+                    Pan = double.Parse( value.Substring( split2, split3 - split2 - 1 ) );
+                    Scale = double.Parse( value.Substring( split3 ) );
+                }
+                catch
+                {
+                    Console.WriteLine( ": --" );
+                    Console.WriteLine( ": " + value );
+                    Console.WriteLine( ": " + split0 + ", " + split1 + ", " + split2 + ", " + split3 );
+                    Console.WriteLine( ": " + Direction.String );
+                    Console.WriteLine( value.Substring( split2 + 1, split3 - split2 - 2 ) );
+                    Console.WriteLine( value.Substring( split3 + 1 ) );
+                }
             }
         }
 
