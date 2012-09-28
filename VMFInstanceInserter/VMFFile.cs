@@ -108,8 +108,6 @@ namespace VMFInstanceInserter
                         Console.WriteLine( "Inserting instance of " + fileVal.String + " at (" + originVal.String + ")" );
 
                         String file = fileVal.String;
-                        file = file.Substring( file.IndexOf( '/' ) + 1 );
-
                         VMFFile vmf = null;
 
                         if ( stVMFCache.ContainsKey( file ) )
