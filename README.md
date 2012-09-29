@@ -73,7 +73,7 @@ This is how to make Hammer automatically run this tool when you compile a map.
 	it isn't needed again, and will rename the .temp.prt file vbsp.exe created
 	to only have .prt as the extension.
 	
-7.	That's it. Now just hit "Go!" when you want to compile. You won't have to
+6.	That's it. Now just hit "Go!" when you want to compile. You won't have to
 	enter that stuff in again unless you are setting up a new installation of
 	hammer.
 
@@ -84,4 +84,21 @@ Some entities will have properties that involve either angles or positions that
 need to be changed when the entity is inserted as an instance. To tell vmfii.exe
 which properties to correct, edit entities.txt.
 
-TODO: Explain the format
+The file loosely follows the JSON format, with each object named as an entity's
+class name. Each of the keys inside an entity object represent a property name
+in an entity, and the value can be one of the following:
+
+	entity   // This property is an entity name and should be prepended /
+	         // appended with the fixup name you specified when placing the
+			 // instance
+		   
+	position // This property is a position and should be translated and rotated
+	         // when placing the instace
+			 
+	angle    // This property is an angle which should be rotated when placing
+	         // the instance
+			 
+	offset   // This property is a relative offset which should be rotated when
+	         // placing this instance
+
+TODO: Add example
