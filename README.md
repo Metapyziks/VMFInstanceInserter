@@ -62,30 +62,16 @@ This is how to make Hammer automatically run this tool when you compile a map.
 		
 	This is telling vbsp.exe to compile the fixed .vmf made by vmfii.exe.
 
-5.	This step is completely optional. If you want you could tell hammer to
-	delete the fixed map now, since it isn't used again. To do this, make a new
-	command and move it up to be after the "$bsp_exe" one. Choose "Delete File"
-	after clicking "Cmds", and set the parameters to be:
+5.	Now we need to prepare the output of vbsp.exe for vvis.exe. Make a new
+	command after the second line, and set the command type to be "Executable".
+	Now navigate to vmfii.exe again (it should already be in the right
+	directory) but this time use these as the arguments:
 	
-	    $path\$file.temp.$ext
-	
-6.	After vbsp.exe compiled the map it produced two files, one ending in .bsp
-	and the other .temp.prt. The next step, vvis.exe, expects the second file
-	to not have .temp in its name. So we need to rename that file to get rid
-	of the .temp. However, Hammer will refuse to rename a file if a file
-	already exists with the new name. We'll have to tell Hammer to try and
-	delete the .prt made by the last compile if it exists, and then rename the
-	new one.
-	
-	Add a new command, and move it to be before "$vis_exe". Choose "Delete File"
-	as the command type, and set the parameters to:
-	
-	    $path\$file.prt
-	
-	Now add another command, and move it to be after the last one we added.
-	Choose "Rename File", and set the parameters to:
-	
-	    $path\$file.temp.prt $path\$file.prt
+		$path\$file.$ext $path\$file.temp.$ext -cleanup
+		
+	Specifically, this will delete the .temp.vmf that vmfii.exe created since
+	it isn't needed again, and will rename the .temp.prt file vbsp.exe created
+	to only have .prt as the extension.
 	
 7.	That's it. Now just hit "Go!" when you want to compile. You won't have to
 	enter that stuff in again unless you are setting up a new installation of
