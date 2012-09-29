@@ -12,22 +12,32 @@ namespace VMFInstanceInserter
         private static Dictionary<String, VMFFile> stVMFCache = new Dictionary<string, VMFFile>();
 
         public String OriginalPath { get; private set; }
-        public String DestinationPath { get; set; }
         public VMFStructure Root { get; private set; }
         public VMFStructure World { get; private set; }
 
         public int LastID { get; private set; }
 
-        public VMFFile( String path )
+        public VMFFile( String path, String rootDir = null )
         {
             Console.WriteLine( "Parsing " + path + "..." );
 
-            OriginalPath = path;
-            DestinationPath = Path.GetDirectoryName( path ) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension( path ) + ".temp.vmf";
+            OriginalPath = ( rootDir != null ? rootDir + Path.DirectorySeparatorChar : "" ) + path;
+
+            if ( !File.Exists( OriginalPath ) )
+            {
+                if ( rootDir != null && path.Contains( '/' ) && path.Substring( 0, path.IndexOf( '/' ) ) == rootDir.Substring( rootDir.LastIndexOf( '\\' ) + 1 ) )
+                    OriginalPath = rootDir + Path.DirectorySeparatorChar + path.Substring( path.IndexOf( '/' ) + 1 );
+
+                if ( !File.Exists( OriginalPath ) )
+                {
+                    Console.WriteLine( "File \"" + path + "\" not found!" );
+                    return;
+                }
+            }
 
             try
             {
-                using ( FileStream stream = new FileStream( path, FileMode.Open, FileAccess.Read ) )
+                using ( FileStream stream = new FileStream( OriginalPath, FileMode.Open, FileAccess.Read ) )
                     Root = new VMFStructure( "file", new StreamReader( stream ) );
             }
             catch( Exception e )
@@ -48,7 +58,7 @@ namespace VMFInstanceInserter
 
             LastID = Root.GetLastID();
 
-            stVMFCache.Add( Path.GetFileName( path ), this );
+            stVMFCache.Add( path, this );
         }
 
         public void ResolveInstances()
@@ -114,7 +124,7 @@ namespace VMFInstanceInserter
                             vmf = stVMFCache[ file ];
                         else
                         {
-                            vmf = new VMFFile( Path.GetDirectoryName( OriginalPath ) + Path.DirectorySeparatorChar + file );
+                            vmf = new VMFFile( file, Path.GetDirectoryName( OriginalPath ) );
                             if ( vmf.Root != null )
                                 vmf.ResolveInstances();
                         }
@@ -156,11 +166,8 @@ namespace VMFInstanceInserter
             Console.WriteLine( "Instances resolved." );
         }
 
-        public void Save( String path = null )
+        public void Save( String path )
         {
-            if ( path == null )
-                path = DestinationPath;
-
             Console.WriteLine( "Saving to " + path + "..." );
 
             using ( FileStream stream = new FileStream( path, FileMode.Create, FileAccess.Write ) )
