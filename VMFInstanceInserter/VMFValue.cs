@@ -4,11 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace VMFInstanceInserter
 {
     public abstract class VMFValue
     {
+        protected static readonly CultureInfo CultureInfo = CultureInfo.GetCultureInfo( "en-US" );
+
         private static List<Tuple<ConstructorInfo, Regex, int>> stTypes;
 
         static VMFValue()
@@ -26,10 +29,10 @@ namespace VMFInstanceInserter
                     int order = (int) orderp.GetValue( null );
 
                     int i = 0;
-                    while ( i < stTypes.Count && order >= stTypes[ i ].Item3 )
+                    while ( i < stTypes.Count && order >= stTypes[i].Item3 )
                         ++i;
 
-                    stTypes.Insert( i, new Tuple<ConstructorInfo, Regex, int>( type.GetConstructor( new Type[ 0 ] ), new Regex( "^" + pattern + "$" ), order ) );
+                    stTypes.Insert( i, new Tuple<ConstructorInfo, Regex, int>( type.GetConstructor( new Type[0] ), new Regex( "^" + pattern + "$" ), order ) );
                 }
             }
         }
@@ -40,7 +43,7 @@ namespace VMFInstanceInserter
             {
                 if ( type.Item2.IsMatch( str ) )
                 {
-                    VMFValue val = (VMFValue) type.Item1.Invoke( new object[ 0 ] );
+                    VMFValue val = (VMFValue) type.Item1.Invoke( new object[0] );
                     try
                     {
                         val.String = str;
@@ -112,8 +115,8 @@ namespace VMFInstanceInserter
 
         public override string String
         {
-            get { return Value.ToString(); }
-            set { Value = double.Parse( value ); }
+            get { return Value.ToString( CultureInfo ); }
+            set { Value = double.Parse( value, CultureInfo ); }
         }
 
         public override VMFValue Clone()
@@ -134,7 +137,7 @@ namespace VMFInstanceInserter
 
         public override string String
         {
-            get { return ( myInSqBracs ? "[" : "" ) + X.ToString() + " " + Y.ToString() + ( myInSqBracs ? "]" : "" ); }
+            get { return ( myInSqBracs ? "[" : "" ) + X.ToString( CultureInfo ) + " " + Y.ToString( CultureInfo ) + ( myInSqBracs ? "]" : "" ); }
             set
             {
                 myInSqBracs = value.StartsWith( "[" );
@@ -144,9 +147,9 @@ namespace VMFInstanceInserter
                 double x = 0, y = 0;
 
                 if ( vals.Length >= 1 )
-                    double.TryParse( vals[ 0 ], out x );
+                    double.TryParse( vals[0], NumberStyles.Number, CultureInfo, out x );
                 if ( vals.Length >= 2 )
-                    double.TryParse( vals[ 1 ], out y );
+                    double.TryParse( vals[1], NumberStyles.Number, CultureInfo, out y );
 
                 X = x;
                 Y = y;
@@ -187,7 +190,7 @@ namespace VMFInstanceInserter
             set { Z = value; }
         }
 
-        public double[ , ] RotationMatrix
+        public double[,] RotationMatrix
         {
             get
             {
@@ -200,7 +203,7 @@ namespace VMFInstanceInserter
 
         public override string String
         {
-            get { return ( myInSqBracs ? "[" : "" ) + X.ToString() + " " + Y.ToString() + " " + Z.ToString() + ( myInSqBracs ? "]" : "" ); }
+            get { return ( myInSqBracs ? "[" : "" ) + X.ToString( CultureInfo ) + " " + Y.ToString( CultureInfo ) + " " + Z.ToString( CultureInfo ) + ( myInSqBracs ? "]" : "" ); }
             set
             {
                 myInSqBracs = value.StartsWith( "[" );
@@ -210,11 +213,11 @@ namespace VMFInstanceInserter
                 double x = 0, y = 0, z = 0;
 
                 if ( vals.Length >= 1 )
-                    double.TryParse( vals[ 0 ], out x );
+                    double.TryParse( vals[0], NumberStyles.Number, CultureInfo, out x );
                 if ( vals.Length >= 2 )
-                    double.TryParse( vals[ 1 ], out y );
+                    double.TryParse( vals[1], NumberStyles.Number, CultureInfo, out y );
                 if ( vals.Length >= 3 )
-                    double.TryParse( vals[ 2 ], out z );
+                    double.TryParse( vals[2], NumberStyles.Number, CultureInfo, out z );
 
                 X = x;
                 Y = y;
@@ -235,7 +238,7 @@ namespace VMFInstanceInserter
             GetCosAndSin( Pitch, out cosB, out sinB );
             GetCosAndSin( Roll, out cosC, out sinC );
 
-            myRotationMatrix = new double[ , ]
+            myRotationMatrix = new double[,]
             {
                 { cosA * cosB, cosA * sinB * sinC - sinA * cosC, cosA * sinB * cosC + sinA * sinC },
                 { sinA * cosB, sinA * sinB * sinC + cosA * cosC, sinA * sinB * cosC - cosA * sinC },
@@ -285,9 +288,9 @@ namespace VMFInstanceInserter
 
             double yaw = Yaw, pitch = Pitch, roll = Roll;
 
-            Yaw = yaw * mat[ 0, 0 ] + pitch * mat[ 0, 1 ] + roll * mat[ 0, 2 ];
-            Pitch = yaw * mat[ 1, 0 ] + pitch * mat[ 1, 1 ] + roll * mat[ 1, 2 ];
-            Roll = yaw * mat[ 2, 0 ] + pitch * mat[ 2, 1 ] + roll * mat[ 2, 2 ];
+            Yaw = yaw * mat[0, 0] + pitch * mat[0, 1] + roll * mat[0, 2];
+            Pitch = yaw * mat[1, 0] + pitch * mat[1, 1] + roll * mat[1, 2];
+            Roll = yaw * mat[2, 0] + pitch * mat[2, 1] + roll * mat[2, 2];
         }
 
         public override void AddAngles( VMFVector3Value angles )
@@ -316,7 +319,9 @@ namespace VMFInstanceInserter
 
         public override string String
         {
-            get { return ( myInSqBracs ? "[" : "" ) + R.ToString() + " " + G.ToString() + " " + B.ToString() + " " + A.ToString() + ( myInSqBracs ? "]" : "" ); }
+            get { return ( myInSqBracs ? "[" : "" ) + R.ToString( CultureInfo )
+                + " " + G.ToString( CultureInfo ) + " " + B.ToString( CultureInfo )
+                + " " + A.ToString( CultureInfo ) + ( myInSqBracs ? "]" : "" ); }
             set
             {
                 myInSqBracs = value.StartsWith( "[" );
@@ -326,13 +331,13 @@ namespace VMFInstanceInserter
                 double r = 0, g = 0, b = 0, a = 0;
 
                 if ( vals.Length >= 1 )
-                    double.TryParse( vals[ 0 ], out r );
+                    double.TryParse( vals[0], NumberStyles.Number, CultureInfo, out r );
                 if ( vals.Length >= 2 )
-                    double.TryParse( vals[ 1 ], out g );
+                    double.TryParse( vals[1], NumberStyles.Number, CultureInfo, out g );
                 if ( vals.Length >= 3 )
-                    double.TryParse( vals[ 2 ], out b );
+                    double.TryParse( vals[2], NumberStyles.Number, CultureInfo, out b );
                 if ( vals.Length >= 4 )
-                    double.TryParse( vals[ 3 ], out a );
+                    double.TryParse( vals[3], NumberStyles.Number, CultureInfo, out a );
 
                 R = r;
                 G = g;
@@ -358,10 +363,10 @@ namespace VMFInstanceInserter
 
         public override string String
         {
-            get { return "[" + Direction.String + " " + Pan.ToString() + "] " + Scale.ToString(); }
+            get { return "[" + Direction.String + " " + Pan.ToString( CultureInfo ) + "] " + Scale.ToString( CultureInfo ); }
             set
             {
-                if( Direction == null )
+                if ( Direction == null )
                     Direction = new VMFVector3Value();
 
                 int split0 = value.IndexOf( ' ' );
@@ -373,8 +378,8 @@ namespace VMFInstanceInserter
 
                 try
                 {
-                    Pan = double.Parse( value.Substring( split2, split3 - split2 - 1 ) );
-                    Scale = double.Parse( value.Substring( split3 ) );
+                    Pan = double.Parse( value.Substring( split2, split3 - split2 - 1 ), CultureInfo );
+                    Scale = double.Parse( value.Substring( split3 ), CultureInfo );
                 }
                 catch
                 {
@@ -418,21 +423,21 @@ namespace VMFInstanceInserter
                 if ( Vectors.Length == 0 )
                     return "";
 
-                String str = "(" + Vectors[ 0 ].String + ")";
+                String str = "(" + Vectors[0].String + ")";
                 for ( int i = 1; i < Vectors.Length; ++i )
-                    str += " (" + Vectors[ i ].String + ")";
+                    str += " (" + Vectors[i].String + ")";
 
                 return str;
             }
             set
             {
-                String[] vects = value.Trim( '(', ')' ).Split( new String[]{ ") (" }, StringSplitOptions.None );
+                String[] vects = value.Trim( '(', ')' ).Split( new String[] { ") (" }, StringSplitOptions.None );
 
-                Vectors = new VMFVector3Value[ vects.Length ];
+                Vectors = new VMFVector3Value[vects.Length];
                 for ( int i = 0; i < vects.Length; ++i )
                 {
-                    Vectors[ i ] = new VMFVector3Value();
-                    Vectors[ i ].String = vects[ i ];
+                    Vectors[i] = new VMFVector3Value();
+                    Vectors[i].String = vects[i];
                 }
             }
         }
@@ -440,9 +445,9 @@ namespace VMFInstanceInserter
         public override VMFValue Clone()
         {
             VMFVector3ArrayValue arr = new VMFVector3ArrayValue();
-            arr.Vectors = new VMFVector3Value[ Vectors.Length ];
+            arr.Vectors = new VMFVector3Value[Vectors.Length];
             for ( int i = 0; i < Vectors.Length; ++i )
-                arr.Vectors[ i ] = (VMFVector3Value) Vectors[ i ].Clone();
+                arr.Vectors[i] = (VMFVector3Value) Vectors[i].Clone();
             return arr;
         }
 
