@@ -66,6 +66,8 @@ namespace VMFInstanceInserter
             Console.WriteLine( "Resolving instances for " + OriginalPath + "..." );
             List<VMFStructure> structures = Root.Structures;
 
+            int autoName = 0;
+
             for( int i = structures.Count - 1; i >= 0; --i )
             {
                 VMFStructure structure = structures[ i ];
@@ -108,6 +110,9 @@ namespace VMFInstanceInserter
 
                         TargetNameFixupStyle fixupStyle = (TargetNameFixupStyle) fixup_styleVal.Value;
                         String targetName = ( targetnameVal != null ? targetnameVal.String : null );
+
+                        if ( fixupStyle != TargetNameFixupStyle.None && targetName == null )
+                            targetName = ( ++autoName ).ToString();
 
                         if ( fileVal == null )
                         {
