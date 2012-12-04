@@ -86,25 +86,23 @@ namespace VMFInstanceInserter
                         VMFValue targetnameVal = structure[ "targetname" ];
 
                         Regex pattern = new Regex( "^replace[0-9]*$" );
-                        Dictionary<String, VMFValue> replacements = new Dictionary<string, VMFValue>();
+                        Dictionary<String, String> replacements = new Dictionary<String, String>();
 
                         foreach ( KeyValuePair<String, VMFValue> keyVal in structure.Properties )
                         {
                             if ( pattern.IsMatch( keyVal.Key ) )
                             {
                                 String[] split = keyVal.Value.String.Split( new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries );
-                                for ( int j = 0; j < split.Length; ++j )
+                                if ( split.Length < 1 )
+                                    continue;
+
+                                if ( !split[0].StartsWith( "$" ) )
                                 {
-                                    if ( split[ j ].StartsWith( "$" ) )
-                                        continue;
-
-                                    VMFValue replacement = VMFValue.Parse( String.Join( " ", split, j, split.Length - j ) );
-
-                                    for ( int k = 0; k < j; ++k )
-                                        replacements.Add( split[ k ].Substring( 1 ), replacement );
-
-                                    break;
+                                    Console.WriteLine( "Invalid property replacement name \"{0}\" - needs to begin with a $", split[0] );
+                                    continue;
                                 }
+
+                                replacements.Add( split[0], keyVal.Value.String.Substring( split[0].Length + 1 ).TrimStart() );
                             }
                         }
 
