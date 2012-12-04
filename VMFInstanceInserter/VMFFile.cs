@@ -110,7 +110,7 @@ namespace VMFInstanceInserter
                         String targetName = ( targetnameVal != null ? targetnameVal.String : null );
 
                         if ( fixupStyle != TargetNameFixupStyle.None && targetName == null )
-                            targetName = ( ++autoName ).ToString();
+                            targetName = "AutoInstance" + ( autoName++ );
 
                         if ( fileVal == null )
                         {
