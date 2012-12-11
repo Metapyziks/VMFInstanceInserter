@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -86,7 +85,7 @@ namespace VMFInstanceInserter
                         VMFValue targetnameVal = structure[ "targetname" ];
 
                         Regex pattern = new Regex( "^replace[0-9]*$" );
-                        Dictionary<String, String> replacements = new Dictionary<String, String>();
+                        List<KeyValuePair<String, String>> replacements = new List<KeyValuePair<String, String>>();
 
                         foreach ( KeyValuePair<String, VMFValue> keyVal in structure.Properties )
                         {
@@ -102,9 +101,11 @@ namespace VMFInstanceInserter
                                     continue;
                                 }
 
-                                replacements.Add( split[0], keyVal.Value.String.Substring( split[0].Length + 1 ).TrimStart() );
+                                replacements.Add( new KeyValuePair<String, String>( split[0], keyVal.Value.String.Substring( split[0].Length + 1 ).TrimStart() ) );
                             }
                         }
+
+                        replacements = replacements.OrderByDescending( x => x.Key.Length ).ToList();
 
                         TargetNameFixupStyle fixupStyle = (TargetNameFixupStyle) fixup_styleVal.Value;
                         String targetName = ( targetnameVal != null ? targetnameVal.String : null );

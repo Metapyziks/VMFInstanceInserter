@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using System.Reflection;
 
@@ -161,6 +160,22 @@ namespace VMFInstanceInserter
             }
         }
 
+        private static String FixupName( String name, TargetNameFixupStyle fixupStyle, String targetName )
+        {
+            if ( fixupStyle == TargetNameFixupStyle.None || targetName == null || name.StartsWith( "@" ) )
+                return name;
+
+            switch( fixupStyle )
+            {
+                case TargetNameFixupStyle.Postfix:
+                    return name + targetName;
+                case TargetNameFixupStyle.Prefix:
+                    return targetName + name;
+                default:
+                    return name;
+            }
+        }
+
         private int myIDIndex;
 
         public VMFStructureType Type { get; private set; }
@@ -224,18 +239,7 @@ namespace VMFInstanceInserter
                     if ( fixupStyle != TargetNameFixupStyle.None && targetName != null )
                     {
                         String[] split = kvClone.Value.String.Split( ',' );
-                        if ( split[ 0 ].Length > 0 )
-                        {
-                            switch ( fixupStyle )
-                            {
-                                case TargetNameFixupStyle.Prefix:
-                                    split[ 0 ] = targetName + split[ 0 ];
-                                    break;
-                                case TargetNameFixupStyle.Postfix:
-                                    split[ 0 ] = split[ 0 ] + targetName;
-                                    break;
-                            }
-                        }
+                        split[0] = FixupName( split[0], fixupStyle, targetName );
                         kvClone.Value.String = String.Join( ",", split );
                     }
                 }
@@ -246,15 +250,7 @@ namespace VMFInstanceInserter
                     else if ( ( kvClone.Key == "targetname" || ( entDict != null && entDict.ContainsKey( keyVal.Key ) && entDict[ keyVal.Key ] == TransformType.EntityName ) )
                         && fixupStyle != TargetNameFixupStyle.None && targetName != null )
                     {
-                        switch ( fixupStyle )
-                        {
-                            case TargetNameFixupStyle.Prefix:
-                                ( (VMFStringValue) kvClone.Value ).String = targetName + ( (VMFStringValue) kvClone.Value ).String;
-                                break;
-                            case TargetNameFixupStyle.Postfix:
-                                ( (VMFStringValue) kvClone.Value ).String = ( (VMFStringValue) kvClone.Value ).String + targetName;
-                                break;
-                        }
+                        ( (VMFStringValue) kvClone.Value ).String = FixupName( ( (VMFStringValue) kvClone.Value ).String, fixupStyle, targetName );
                     }
                 }
 
@@ -335,9 +331,9 @@ namespace VMFInstanceInserter
             return new VMFStructure( this, idOffset, fixupStyle, targetName );
         }
 
-        public void ReplaceProperties( Dictionary<String, String> dict )
+        public void ReplaceProperties( List<KeyValuePair<String, String>> dict )
         {
-            if ( Type == VMFStructureType.Entity )
+            if ( Type == VMFStructureType.Entity || Type == VMFStructureType.Connections )
             {
                 for ( int i = 0; i < Properties.Count; ++i )
                 {
@@ -351,6 +347,11 @@ namespace VMFInstanceInserter
                         Properties[i] = new KeyValuePair<string, VMFValue>( Properties[i].Key, VMFValue.Parse( str ) );
                     }
                 }
+
+                if ( Type == VMFStructureType.Entity )
+                    foreach ( VMFStructure strct in Structures )
+                        if ( strct.Type == VMFStructureType.Connections )
+                            strct.ReplaceProperties( dict );
             }
         }
 
