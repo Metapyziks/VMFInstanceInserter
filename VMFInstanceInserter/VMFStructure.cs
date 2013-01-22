@@ -74,6 +74,7 @@ namespace VMFInstanceInserter
         };
 
         private static readonly Dictionary<String, Dictionary<String, TransformType>> stEntitiesDict = new Dictionary<String, Dictionary<string, TransformType>>();
+        private static readonly Dictionary<String, TransformType> stInputsDict = new Dictionary<String, TransformType>();
 
         static VMFStructure()
         {
@@ -87,73 +88,87 @@ namespace VMFInstanceInserter
             if (File.Exists(infoPath)) {
                 Console.WriteLine("Loading entities.txt");
 
-                List<KeyValuePair<String, InfoObject>> objs = Info.ParseFile(infoPath).Select(
-                    x => new KeyValuePair<String, InfoObject>(x.Name, x)).ToList();
-
-                if (objs.Count == 1 && objs[0].Key == "unnamed") {
-                    objs = objs[0].Value.Select(x => new KeyValuePair<String, InfoObject>(x.Key, (InfoObject) x.Value)).ToList();
-                }
-
                 try {
+                    var objs = Info.ParseFile(infoPath).Select(
+                        x => new KeyValuePair<String, InfoObject>(x.Name, x)).ToList();
+
+                    var inps = new List<KeyValuePair<string, TransformType>>();
+
+                    if (objs.Count == 1 && objs[0].Key == "unnamed") {
+                        var props = objs[0].Value["properties"] as InfoObject;
+                        var inpts = objs[0].Value["inputs"] as InfoObject;
+                        if (props != null) {
+                            objs = props.Select(x => new KeyValuePair<String, InfoObject>(x.Key, (InfoObject) x.Value)).ToList();
+                        } else {
+                            objs = new List<KeyValuePair<string, InfoObject>>();
+                        }
+                        if (inpts != null) {
+                            inps = inpts.Select(x => new KeyValuePair<String, TransformType>(
+                                x.Key, ParseTransformType(x.Value.AsString()))).ToList();
+                        }
+                    }
+
                     foreach (var obj in objs) {
                         if (!stEntitiesDict.ContainsKey(obj.Key))
                             stEntitiesDict.Add(obj.Key, new Dictionary<string, TransformType>());
 
                         foreach (KeyValuePair<String, InfoValue> keyVal in obj.Value) {
                             if (keyVal.Value is InfoString) {
-                                String str = keyVal.Value.AsString().ToLower();
-                                switch (str) {
-                                    case "n":
-                                    case "null":
-                                    case "nil":
-                                    case "none":
-                                        if (stEntitiesDict[obj.Key].ContainsKey(keyVal.Key))
-                                            stEntitiesDict[obj.Key].Remove(keyVal.Key);
-                                        break;
-                                    case "o":
-                                    case "off":
-                                    case "offset":
-                                        if (stEntitiesDict[obj.Key].ContainsKey(keyVal.Key))
-                                            stEntitiesDict[obj.Key][keyVal.Key] = TransformType.Offset;
-                                        else
-                                            stEntitiesDict[obj.Key].Add(keyVal.Key, TransformType.Offset);
-                                        break;
-                                    case "a":
-                                    case "ang":
-                                    case "angle":
-                                        if (stEntitiesDict[obj.Key].ContainsKey(keyVal.Key))
-                                            stEntitiesDict[obj.Key][keyVal.Key] = TransformType.Angle;
-                                        else
-                                            stEntitiesDict[obj.Key].Add(keyVal.Key, TransformType.Angle);
-                                        break;
-                                    case "p":
-                                    case "pos":
-                                    case "position":
-                                        if (stEntitiesDict[obj.Key].ContainsKey(keyVal.Key))
-                                            stEntitiesDict[obj.Key][keyVal.Key] = TransformType.Position;
-                                        else
-                                            stEntitiesDict[obj.Key].Add(keyVal.Key, TransformType.Position);
-                                        break;
-                                    case "e":
-                                    case "ent":
-                                    case "entity":
-                                        if (stEntitiesDict[obj.Key].ContainsKey(keyVal.Key))
-                                            stEntitiesDict[obj.Key][keyVal.Key] = TransformType.EntityName;
-                                        else
-                                            stEntitiesDict[obj.Key].Add(keyVal.Key, TransformType.EntityName);
-                                        break;
-                                    default:
-                                        Console.WriteLine("Bad definition for " + obj.Key + "." + keyVal.Key + ": " + str);
-                                        break;
+                                TransformType trans = ParseTransformType(keyVal.Value.AsString());
+                                if (stEntitiesDict[obj.Key].ContainsKey(keyVal.Key)) {
+                                    if (trans == TransformType.None) {
+                                        stEntitiesDict[obj.Key].Remove(keyVal.Key);
+                                    } else {
+                                        stEntitiesDict[obj.Key][keyVal.Key] = trans;
+                                    }
+                                } else if (trans != TransformType.None) {
+                                    stEntitiesDict[obj.Key].Add(keyVal.Key, trans);
                                 }
                             }
                         }
+                    }
+
+                    foreach (var inp in inps) {
+                        if (!stInputsDict.ContainsKey(inp.Key))
+                            stInputsDict.Add(inp.Key, inp.Value);
+                        else
+                            stInputsDict[inp.Key] = inp.Value;
                     }
                 } catch {
                     Console.WriteLine("Error while reading entities.txt");
                 }
             } else {
                 Console.WriteLine("File entities.txt not found!");
+            }
+        }
+
+        private static TransformType ParseTransformType(String str)
+        {
+            switch (str.ToLower()) {
+                case "n":
+                case "null":
+                case "nil":
+                case "none":
+                    return TransformType.None;
+                case "o":
+                case "off":
+                case "offset":
+                    return TransformType.Offset;
+                case "a":
+                case "ang":
+                case "angle":
+                    return TransformType.Angle;
+                case "p":
+                case "pos":
+                case "position":
+                    return TransformType.Position;
+                case "e":
+                case "ent":
+                case "entity":
+                    return TransformType.EntityName;
+                default:
+                    Console.WriteLine("Bad transform type: " + str);
+                    return TransformType.None;
             }
         }
 
