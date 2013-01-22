@@ -1,8 +1,17 @@
-(ent) "func_button" :
 {
-	"movedir" : "angle"
-},
-(ent) "func_door" :
-{
-	"movedir" : "angle"
+	"properties" :
+	{
+		"func_button" :
+		{
+			"movedir" : "angle"
+		},
+		"func_door" :
+		{
+			"movedir" : "angle"
+		}
+	},
+	"inputs" :
+	{
+		"SetParent" : "entity"
+	}
 }

@@ -79,94 +79,90 @@ namespace VMFInstanceInserter
         {
             stTypeDict = new Dictionary<string, VMFStructureType>();
 
-            foreach ( String name in Enum.GetNames( typeof( VMFStructureType ) ) )
-                stTypeDict.Add( name.ToLower(), (VMFStructureType) Enum.Parse( typeof( VMFStructureType ), name ) );
+            foreach (String name in Enum.GetNames(typeof(VMFStructureType)))
+                stTypeDict.Add(name.ToLower(), (VMFStructureType) Enum.Parse(typeof(VMFStructureType), name));
 
-            String infoPath = Path.GetDirectoryName( Assembly.GetExecutingAssembly().Location ) + Path.DirectorySeparatorChar + "entities.txt";
+            String infoPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "entities.txt";
 
-            if ( File.Exists( infoPath ) )
-            {
-                Console.WriteLine( "Loading entities.txt" );
+            if (File.Exists(infoPath)) {
+                Console.WriteLine("Loading entities.txt");
 
-                try
-                {
-                    foreach ( InfoObject obj in Info.ParseFile( infoPath ) )
-                    {
-                        if ( !stEntitiesDict.ContainsKey( obj.Name ) )
-                            stEntitiesDict.Add( obj.Name, new Dictionary<string, TransformType>() );
+                List<KeyValuePair<String, InfoObject>> objs = Info.ParseFile(infoPath).Select(
+                    x => new KeyValuePair<String, InfoObject>(x.Name, x)).ToList();
 
-                        foreach ( KeyValuePair<String, InfoValue> keyVal in obj )
-                        {
-                            if ( keyVal.Value is InfoString )
-                            {
+                if (objs.Count == 1 && objs[0].Key == "unnamed") {
+                    objs = objs[0].Value.Select(x => new KeyValuePair<String, InfoObject>(x.Key, (InfoObject) x.Value)).ToList();
+                }
+
+                try {
+                    foreach (var obj in objs) {
+                        if (!stEntitiesDict.ContainsKey(obj.Key))
+                            stEntitiesDict.Add(obj.Key, new Dictionary<string, TransformType>());
+
+                        foreach (KeyValuePair<String, InfoValue> keyVal in obj.Value) {
+                            if (keyVal.Value is InfoString) {
                                 String str = keyVal.Value.AsString().ToLower();
-                                switch ( str )
-                                {
+                                switch (str) {
                                     case "n":
                                     case "null":
                                     case "nil":
                                     case "none":
-                                        if ( stEntitiesDict[ obj.Name ].ContainsKey( keyVal.Key ) )
-                                            stEntitiesDict[ obj.Name ].Remove( keyVal.Key );
+                                        if (stEntitiesDict[obj.Key].ContainsKey(keyVal.Key))
+                                            stEntitiesDict[obj.Key].Remove(keyVal.Key);
                                         break;
                                     case "o":
                                     case "off":
                                     case "offset":
-                                        if ( stEntitiesDict[ obj.Name ].ContainsKey( keyVal.Key ) )
-                                            stEntitiesDict[ obj.Name ][ keyVal.Key ] = TransformType.Offset;
+                                        if (stEntitiesDict[obj.Key].ContainsKey(keyVal.Key))
+                                            stEntitiesDict[obj.Key][keyVal.Key] = TransformType.Offset;
                                         else
-                                            stEntitiesDict[ obj.Name ].Add( keyVal.Key, TransformType.Offset );
+                                            stEntitiesDict[obj.Key].Add(keyVal.Key, TransformType.Offset);
                                         break;
                                     case "a":
                                     case "ang":
                                     case "angle":
-                                        if ( stEntitiesDict[ obj.Name ].ContainsKey( keyVal.Key ) )
-                                            stEntitiesDict[ obj.Name ][ keyVal.Key ] = TransformType.Angle;
+                                        if (stEntitiesDict[obj.Key].ContainsKey(keyVal.Key))
+                                            stEntitiesDict[obj.Key][keyVal.Key] = TransformType.Angle;
                                         else
-                                            stEntitiesDict[ obj.Name ].Add( keyVal.Key, TransformType.Angle );
+                                            stEntitiesDict[obj.Key].Add(keyVal.Key, TransformType.Angle);
                                         break;
                                     case "p":
                                     case "pos":
                                     case "position":
-                                        if ( stEntitiesDict[ obj.Name ].ContainsKey( keyVal.Key ) )
-                                            stEntitiesDict[ obj.Name ][ keyVal.Key ] = TransformType.Position;
+                                        if (stEntitiesDict[obj.Key].ContainsKey(keyVal.Key))
+                                            stEntitiesDict[obj.Key][keyVal.Key] = TransformType.Position;
                                         else
-                                            stEntitiesDict[ obj.Name ].Add( keyVal.Key, TransformType.Position );
+                                            stEntitiesDict[obj.Key].Add(keyVal.Key, TransformType.Position);
                                         break;
                                     case "e":
                                     case "ent":
                                     case "entity":
-                                        if ( stEntitiesDict[ obj.Name ].ContainsKey( keyVal.Key ) )
-                                            stEntitiesDict[ obj.Name ][ keyVal.Key ] = TransformType.EntityName;
+                                        if (stEntitiesDict[obj.Key].ContainsKey(keyVal.Key))
+                                            stEntitiesDict[obj.Key][keyVal.Key] = TransformType.EntityName;
                                         else
-                                            stEntitiesDict[ obj.Name ].Add( keyVal.Key, TransformType.EntityName );
+                                            stEntitiesDict[obj.Key].Add(keyVal.Key, TransformType.EntityName);
                                         break;
                                     default:
-                                        Console.WriteLine( "Bad definition for " + obj.Name + "." + keyVal.Key + ": " + str );
+                                        Console.WriteLine("Bad definition for " + obj.Key + "." + keyVal.Key + ": " + str);
                                         break;
                                 }
                             }
                         }
                     }
+                } catch {
+                    Console.WriteLine("Error while reading entities.txt");
                 }
-                catch
-                {
-                    Console.WriteLine( "Error while reading entities.txt" );
-                }
-            }
-            else
-            {
-                Console.WriteLine( "File entities.txt not found!" );
+            } else {
+                Console.WriteLine("File entities.txt not found!");
             }
         }
 
-        private static String FixupName( String name, TargetNameFixupStyle fixupStyle, String targetName )
+        private static String FixupName(String name, TargetNameFixupStyle fixupStyle, String targetName)
         {
-            if ( fixupStyle == TargetNameFixupStyle.None || targetName == null || name.StartsWith( "@" ) )
+            if (fixupStyle == TargetNameFixupStyle.None || targetName == null || name.StartsWith("@"))
                 return name;
 
-            switch( fixupStyle )
-            {
+            switch (fixupStyle) {
                 case TargetNameFixupStyle.Postfix:
                     return name + targetName;
                 case TargetNameFixupStyle.Prefix:
@@ -183,36 +179,36 @@ namespace VMFInstanceInserter
         {
             get
             {
-                if ( myIDIndex == -1 )
+                if (myIDIndex == -1)
                     return 0;
 
-                return (int) ( Properties[ myIDIndex ].Value as VMFNumberValue ).Value;
+                return (int) (Properties[myIDIndex].Value as VMFNumberValue).Value;
             }
             set
             {
-                if ( myIDIndex == -1 )
+                if (myIDIndex == -1)
                     return;
 
-                ( Properties[ myIDIndex ].Value as VMFNumberValue ).Value = value;
+                (Properties[myIDIndex].Value as VMFNumberValue).Value = value;
             }
         }
 
         public List<KeyValuePair<String, VMFValue>> Properties { get; private set; }
         public List<VMFStructure> Structures { get; private set; }
 
-        public VMFValue this[ String key ]
+        public VMFValue this[String key]
         {
             get
             {
-                foreach ( KeyValuePair<String, VMFValue> keyVal in Properties )
-                    if ( keyVal.Key == key )
+                foreach (KeyValuePair<String, VMFValue> keyVal in Properties)
+                    if (keyVal.Key == key)
                         return keyVal.Value;
 
                 return null;
             }
         }
 
-        private VMFStructure( VMFStructure clone, int idOffset, TargetNameFixupStyle fixupStyle, String targetName )
+        private VMFStructure(VMFStructure clone, int idOffset, TargetNameFixupStyle fixupStyle, String targetName)
         {
             Type = clone.Type;
 
@@ -223,50 +219,43 @@ namespace VMFInstanceInserter
 
             Dictionary<String, TransformType> entDict = null;
 
-            if ( Type == VMFStructureType.Entity )
-            {
-                String className = clone[ "classname" ].String;
-                if ( className != null && stEntitiesDict.ContainsKey( className ) )
-                    entDict = stEntitiesDict[ className ];
+            if (Type == VMFStructureType.Entity) {
+                String className = clone["classname"].String;
+                if (className != null && stEntitiesDict.ContainsKey(className))
+                    entDict = stEntitiesDict[className];
             }
 
-            foreach ( KeyValuePair<String, VMFValue> keyVal in clone.Properties )
-            {
-                KeyValuePair<String, VMFValue> kvClone = new KeyValuePair<string, VMFValue>( keyVal.Key, keyVal.Value.Clone() );
+            foreach (KeyValuePair<String, VMFValue> keyVal in clone.Properties) {
+                KeyValuePair<String, VMFValue> kvClone = new KeyValuePair<string, VMFValue>(keyVal.Key, keyVal.Value.Clone());
 
-                if ( Type == VMFStructureType.Connections )
-                {
-                    if ( fixupStyle != TargetNameFixupStyle.None && targetName != null )
-                    {
-                        String[] split = kvClone.Value.String.Split( ',' );
-                        split[0] = FixupName( split[0], fixupStyle, targetName );
-                        kvClone.Value.String = String.Join( ",", split );
+                if (Type == VMFStructureType.Connections) {
+                    if (fixupStyle != TargetNameFixupStyle.None && targetName != null) {
+                        String[] split = kvClone.Value.String.Split(',');
+                        split[0] = FixupName(split[0], fixupStyle, targetName);
+                        kvClone.Value.String = String.Join(",", split);
                     }
-                }
-                else
-                {
-                    if ( kvClone.Key == "groupid" )
-                        ( (VMFNumberValue) kvClone.Value ).Value += idOffset;
-                    else if ( ( kvClone.Key == "targetname" || ( entDict != null && entDict.ContainsKey( keyVal.Key ) && entDict[ keyVal.Key ] == TransformType.EntityName ) )
-                        && fixupStyle != TargetNameFixupStyle.None && targetName != null )
-                    {
-                        ( (VMFStringValue) kvClone.Value ).String = FixupName( ( (VMFStringValue) kvClone.Value ).String, fixupStyle, targetName );
+                } else {
+                    if (kvClone.Key == "groupid")
+                        ((VMFNumberValue) kvClone.Value).Value += idOffset;
+                    else if ((kvClone.Key == "targetname" || (entDict != null && entDict.ContainsKey(keyVal.Key) && entDict[keyVal.Key] == TransformType.EntityName))
+                        && fixupStyle != TargetNameFixupStyle.None && targetName != null) {
+                        ((VMFStringValue) kvClone.Value).String = FixupName(((VMFStringValue) kvClone.Value).String, fixupStyle, targetName);
                     }
                 }
 
-                Properties.Add( kvClone );
+                Properties.Add(kvClone);
             }
 
-            foreach ( VMFStructure structure in clone.Structures )
-                Structures.Add( new VMFStructure( structure, idOffset, fixupStyle, targetName ) );
+            foreach (VMFStructure structure in clone.Structures)
+                Structures.Add(new VMFStructure(structure, idOffset, fixupStyle, targetName));
 
             ID += idOffset;
         }
 
-        public VMFStructure( String type, StreamReader reader )
+        public VMFStructure(String type, StreamReader reader)
         {
-            if ( stTypeDict.ContainsKey( type ) )
-                Type = stTypeDict[ type ];
+            if (stTypeDict.ContainsKey(type))
+                Type = stTypeDict[type];
             else
                 Type = VMFStructureType.Unknown;
 
@@ -276,146 +265,132 @@ namespace VMFInstanceInserter
             myIDIndex = -1;
 
             String line;
-            while ( !reader.EndOfStream && ( line = reader.ReadLine().Trim() ) != "}" )
-            {
-                if ( line == "{" || line.Length == 0 )
+            while (!reader.EndOfStream && (line = reader.ReadLine().Trim()) != "}") {
+                if (line == "{" || line.Length == 0)
                     continue;
 
-                if ( line[ 0 ] == '"' )
-                {
-                    String[] pair = line.Trim( '"' ).Split( new String[] { "\" \"" }, StringSplitOptions.None );
-                    if ( pair.Length != 2 )
+                if (line[0] == '"') {
+                    String[] pair = line.Trim('"').Split(new String[] { "\" \"" }, StringSplitOptions.None);
+                    if (pair.Length != 2)
                         continue;
 
-                    KeyValuePair<String, VMFValue> keyVal = new KeyValuePair<string, VMFValue>( pair[ 0 ], VMFValue.Parse( pair[ 1 ] ) );
+                    KeyValuePair<String, VMFValue> keyVal = new KeyValuePair<string, VMFValue>(pair[0], VMFValue.Parse(pair[1]));
 
-                    if ( keyVal.Key == "id" && keyVal.Value is VMFNumberValue )
+                    if (keyVal.Key == "id" && keyVal.Value is VMFNumberValue)
                         myIDIndex = Properties.Count;
 
-                    Properties.Add( keyVal );
-                }
-                else
-                {
-                    Structures.Add( new VMFStructure( line, reader ) );
+                    Properties.Add(keyVal);
+                } else {
+                    Structures.Add(new VMFStructure(line, reader));
                 }
             }
         }
 
-        public void Write( StreamWriter writer, int depth = 0 )
+        public void Write(StreamWriter writer, int depth = 0)
         {
-            if ( Type == VMFStructureType.File )
-            {
-                foreach ( VMFStructure structure in Structures )
-                    structure.Write( writer, depth );
-            }
-            else
-            {
+            if (Type == VMFStructureType.File) {
+                foreach (VMFStructure structure in Structures)
+                    structure.Write(writer, depth);
+            } else {
                 String indent = "";
-                for ( int i = 0; i < depth; ++i )
+                for (int i = 0; i < depth; ++i)
                     indent += "\t";
 
-                writer.WriteLine( indent + Type.ToString().ToLower() );
-                writer.WriteLine( indent + "{" );
-                foreach ( KeyValuePair<String, VMFValue> keyVal in Properties )
-                    writer.WriteLine( indent + "\t\"" + keyVal.Key + "\" \"" + keyVal.Value.String + "\"" );
-                foreach ( VMFStructure structure in Structures )
-                    structure.Write( writer, depth + 1 );
-                writer.WriteLine( indent + "}" );
+                writer.WriteLine(indent + Type.ToString().ToLower());
+                writer.WriteLine(indent + "{");
+                foreach (KeyValuePair<String, VMFValue> keyVal in Properties)
+                    writer.WriteLine(indent + "\t\"" + keyVal.Key + "\" \"" + keyVal.Value.String + "\"");
+                foreach (VMFStructure structure in Structures)
+                    structure.Write(writer, depth + 1);
+                writer.WriteLine(indent + "}");
             }
 
             writer.Flush();
         }
 
-        public VMFStructure Clone( int idOffset = 0, TargetNameFixupStyle fixupStyle = TargetNameFixupStyle.None, String targetName = null )
+        public VMFStructure Clone(int idOffset = 0, TargetNameFixupStyle fixupStyle = TargetNameFixupStyle.None, String targetName = null)
         {
-            return new VMFStructure( this, idOffset, fixupStyle, targetName );
+            return new VMFStructure(this, idOffset, fixupStyle, targetName);
         }
 
-        public void ReplaceProperties( List<KeyValuePair<String, String>> dict )
+        public void ReplaceProperties(List<KeyValuePair<String, String>> dict)
         {
-            if ( Type == VMFStructureType.Entity || Type == VMFStructureType.Connections )
-            {
-                for ( int i = 0; i < Properties.Count; ++i )
-                {
+            if (Type == VMFStructureType.Entity || Type == VMFStructureType.Connections) {
+                for (int i = 0; i < Properties.Count; ++i) {
                     String str = Properties[i].Value.String;
 
-                    if ( str.Contains( '$' ) )
-                    {
-                        foreach ( KeyValuePair<String, String> keyVal in dict )
-                            str = str.Replace( keyVal.Key, keyVal.Value );
+                    if (str.Contains('$')) {
+                        foreach (KeyValuePair<String, String> keyVal in dict)
+                            str = str.Replace(keyVal.Key, keyVal.Value);
 
-                        Properties[i] = new KeyValuePair<string, VMFValue>( Properties[i].Key, VMFValue.Parse( str ) );
+                        Properties[i] = new KeyValuePair<string, VMFValue>(Properties[i].Key, VMFValue.Parse(str));
                     }
                 }
 
-                if ( Type == VMFStructureType.Entity )
-                    foreach ( VMFStructure strct in Structures )
-                        if ( strct.Type == VMFStructureType.Connections )
-                            strct.ReplaceProperties( dict );
+                if (Type == VMFStructureType.Entity)
+                    foreach (VMFStructure strct in Structures)
+                        if (strct.Type == VMFStructureType.Connections)
+                            strct.ReplaceProperties(dict);
             }
         }
 
-        public void Transform( VMFVector3Value translation, VMFVector3Value rotation )
+        public void Transform(VMFVector3Value translation, VMFVector3Value rotation)
         {
             Dictionary<String, TransformType> transDict = null;
             Dictionary<String, TransformType> entDict = null;
 
-            if ( stTransformDict.ContainsKey( Type ) )
-                transDict = stTransformDict[ Type ];
+            if (stTransformDict.ContainsKey(Type))
+                transDict = stTransformDict[Type];
 
-            if ( Type == VMFStructureType.Entity )
-            {
-                String className = this[ "classname" ].String;
-                if ( className != null && stEntitiesDict.ContainsKey( className ) )
-                    entDict = stEntitiesDict[ className ];
+            if (Type == VMFStructureType.Entity) {
+                String className = this["classname"].String;
+                if (className != null && stEntitiesDict.ContainsKey(className))
+                    entDict = stEntitiesDict[className];
             }
 
-            if ( transDict != null || entDict != null )
-            {
-                foreach ( KeyValuePair<String, VMFValue> keyVal in Properties )
-                {
+            if (transDict != null || entDict != null) {
+                foreach (KeyValuePair<String, VMFValue> keyVal in Properties) {
                     TransformType trans = TransformType.None;
 
-                    if ( transDict != null && transDict.ContainsKey( keyVal.Key ) )
-                        trans = transDict[ keyVal.Key ];
+                    if (transDict != null && transDict.ContainsKey(keyVal.Key))
+                        trans = transDict[keyVal.Key];
 
-                    if ( entDict != null && entDict.ContainsKey( keyVal.Key ) )
-                        trans = entDict[ keyVal.Key ];
+                    if (entDict != null && entDict.ContainsKey(keyVal.Key))
+                        trans = entDict[keyVal.Key];
 
-                    switch ( trans )
-                    {
+                    switch (trans) {
                         case TransformType.Offset:
-                            keyVal.Value.Rotate( rotation );
+                            keyVal.Value.Rotate(rotation);
                             break;
                         case TransformType.Angle:
-                            keyVal.Value.AddAngles( rotation );
+                            keyVal.Value.AddAngles(rotation);
                             break;
                         case TransformType.Position:
-                            keyVal.Value.Rotate( rotation );
-                            keyVal.Value.Offset( translation );
+                            keyVal.Value.Rotate(rotation);
+                            keyVal.Value.Offset(translation);
                             break;
                     }
                 }
             }
 
-            foreach ( VMFStructure structure in Structures )
-                structure.Transform( translation, rotation );
+            foreach (VMFStructure structure in Structures)
+                structure.Transform(translation, rotation);
         }
 
         public int GetLastID()
         {
             int max = ID;
 
-            foreach ( VMFStructure structure in Structures )
-                max = Math.Max( structure.GetLastID(), max );
+            foreach (VMFStructure structure in Structures)
+                max = Math.Max(structure.GetLastID(), max);
 
             return max;
         }
 
-        public bool ContainsKey( String key )
+        public bool ContainsKey(String key)
         {
-            foreach ( KeyValuePair<String, VMFValue> keyVal in Properties )
-                if ( keyVal.Key == key )
+            foreach (KeyValuePair<String, VMFValue> keyVal in Properties)
+                if (keyVal.Key == key)
                     return true;
 
             return false;

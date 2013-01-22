@@ -20,7 +20,7 @@ namespace VMFInstanceInserter
                     switch ( arg.Substring( 1 ).ToLower() )
                     {
                         case "c":
-                        case "cleanup":
+                        case "-cleanup":
                             cleanup = true;
                             break;
                     }
