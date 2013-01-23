@@ -43,7 +43,8 @@ namespace VMFInstanceInserter
         Offset = 1,
         Angle = 2,
         Position = 3,
-        EntityName = 4
+        EntityName = 4,
+        Identifier = 5
     }
 
     enum TargetNameFixupStyle
@@ -166,6 +167,11 @@ namespace VMFInstanceInserter
                 case "ent":
                 case "entity":
                     return TransformType.EntityName;
+                case "i":
+                case "id":
+                case "ident":
+                case "identifier":
+                    return TransformType.Identifier;
                 default:
                     Console.WriteLine("Bad transform type: " + str);
                     return TransformType.None;
@@ -223,6 +229,7 @@ namespace VMFInstanceInserter
             }
         }
 
+        private static readonly Dictionary<String, TransformType> stDefaultEntDict = new Dictionary<string,TransformType>();
         private VMFStructure(VMFStructure clone, int idOffset, TargetNameFixupStyle fixupStyle, String targetName)
         {
             Type = clone.Type;
@@ -232,7 +239,7 @@ namespace VMFInstanceInserter
 
             myIDIndex = clone.myIDIndex;
 
-            Dictionary<String, TransformType> entDict = null;
+            Dictionary<String, TransformType> entDict = stDefaultEntDict;
 
             if (Type == VMFStructureType.Entity) {
                 String className = clone["classname"].String;
@@ -250,11 +257,19 @@ namespace VMFInstanceInserter
                         kvClone.Value.String = String.Join(",", split);
                     }
                 } else {
+                    if (Type == VMFStructureType.Side && clone.ID == 143)
+                        myIDIndex = myIDIndex;
+
                     if (kvClone.Key == "groupid")
                         ((VMFNumberValue) kvClone.Value).Value += idOffset;
-                    else if ((kvClone.Key == "targetname" || (entDict != null && entDict.ContainsKey(keyVal.Key) && entDict[keyVal.Key] == TransformType.EntityName))
-                        && fixupStyle != TargetNameFixupStyle.None && targetName != null) {
-                        ((VMFStringValue) kvClone.Value).String = FixupName(((VMFStringValue) kvClone.Value).String, fixupStyle, targetName);
+                    else if (Type == VMFStructureType.Entity) {
+                        TransformType trans = entDict.ContainsKey(kvClone.Key) ? entDict[kvClone.Key] : TransformType.None;
+
+                        if (trans == TransformType.Identifier) {
+                            kvClone.Value.OffsetIdentifiers(idOffset);
+                        } else if ((kvClone.Key == "targetname" || trans == TransformType.EntityName) && fixupStyle != TargetNameFixupStyle.None && targetName != null) {
+                            ((VMFStringValue) kvClone.Value).String = FixupName(((VMFStringValue) kvClone.Value).String, fixupStyle, targetName);
+                        }
                     }
                 }
 

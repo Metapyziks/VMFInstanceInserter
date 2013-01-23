@@ -8,6 +8,10 @@
 		"func_door" :
 		{
 			"movedir" : "angle"
+		},
+		"info_overlay" :
+		{
+			"sides" : "identifier"
 		}
 	},
 	"inputs" :

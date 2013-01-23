@@ -2,7 +2,7 @@ versioninfo
 {
 	"editorversion" "400"
 	"editorbuild" "5439"
-	"mapversion" "23"
+	"mapversion" "25"
 	"formatversion" "100"
 	"prefab" "0"
 }
@@ -20,7 +20,7 @@ viewsettings
 world
 {
 	"id" "1"
-	"mapversion" "23"
+	"mapversion" "25"
 	"classname" "worldspawn"
 	"detailmaterial" "detail/detailsprites"
 	"detailvbsp" "detail.vbsp"
@@ -411,13 +411,42 @@ entity
 		"logicalpos" "[0 4000]"
 	}
 }
+entity
+{
+	"id" "526"
+	"classname" "info_overlay"
+	"angles" "0 0 0"
+	"BasisNormal" "0.707107 -0 0.707107"
+	"BasisOrigin" "8 0 40"
+	"BasisU" "0 1 0"
+	"BasisV" "-0.707107 0 0.707107"
+	"EndU" "0"
+	"EndV" "1"
+	"fademindist" "-1"
+	"material" "decals/decalgraffiti024a"
+	"sides" "145 146 143"
+	"StartU" "1"
+	"StartV" "0"
+	"uv0" "-32 -32 0"
+	"uv1" "-32 32 0"
+	"uv2" "32 32 0"
+	"uv3" "32 -32 0"
+	"origin" "8 0 40"
+	editor
+	{
+		"color" "80 150 225"
+		"visgroupshown" "1"
+		"visgroupautoshown" "1"
+		"logicalpos" "[0 0]"
+	}
+}
 cameras
 {
 	"activecamera" "0"
 	camera
 	{
-		"position" "[65.5252 -70.2837 66.1191]"
-		"look" "[65.217 -69.4037 65.7575]"
+		"position" "[38.6206 -3.08817 79.052]"
+		"look" "[38.2052 -2.64115 78.2596]"
 	}
 }
 cordon

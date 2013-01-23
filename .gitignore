@@ -14,3 +14,4 @@ TestResults
 *.bsp
 *.log
 *.prt
+*.temp.vmf
