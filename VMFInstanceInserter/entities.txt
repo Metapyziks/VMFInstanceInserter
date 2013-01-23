@@ -11,6 +11,10 @@
 		},
 		"info_overlay" :
 		{
+			"BasisOrigin" : "position",
+			"BasisNormal" : "offset",
+			"BasisU" : "offset",
+			"BasisV" : "offset",
 			"sides" : "identifier"
 		}
 	},
