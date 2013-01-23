@@ -254,6 +254,14 @@ namespace VMFInstanceInserter
                     if (fixupStyle != TargetNameFixupStyle.None && targetName != null) {
                         String[] split = kvClone.Value.String.Split(',');
                         split[0] = FixupName(split[0], fixupStyle, targetName);
+                        if (stInputsDict.ContainsKey(split[1])) {
+                            switch (stInputsDict[split[1]]) {
+                                case TransformType.EntityName:
+                                    split[2] = FixupName(split[2], fixupStyle, targetName);
+                                    break;
+                                // add more later
+                            }
+                        }
                         kvClone.Value.String = String.Join(",", split);
                     }
                 } else {
