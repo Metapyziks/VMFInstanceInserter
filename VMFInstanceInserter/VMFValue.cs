@@ -28,7 +28,14 @@ namespace VMFInstanceInserter
                     while (i < stTypes.Count && order >= stTypes[i].Item3)
                         ++i;
 
-                    stTypes.Insert(i, new Tuple<ConstructorInfo, Regex, int>(type.GetConstructor(new Type[0]), new Regex("^" + pattern + "$"), order));
+                    ConstructorInfo cons = type.GetConstructor(new Type[0]);
+                    Regex regex = new Regex("^" + pattern + "$");
+
+                    if (cons != null) {
+                        stTypes.Insert(i, new Tuple<ConstructorInfo, Regex, int>(cons, regex, order));
+                    } else {
+                        Console.WriteLine("Could not find parse constructor for type \"" + type.FullName + "\"!");
+                    }
                 }
             }
         }
@@ -517,6 +524,11 @@ namespace VMFInstanceInserter
         {
             for (int i = IDs.Length - 1; i >= 0; --i)
                 IDs[i] += offset;
+        }
+
+        public VMFIdentifierListValue()
+        {
+            IDs = new int[0];
         }
 
         public VMFIdentifierListValue(params int[] ids)
