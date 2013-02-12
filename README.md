@@ -67,7 +67,7 @@ This is how to make Hammer automatically run this tool when you compile a map.
 	Now navigate to vmfii.exe again (it should already be in the right
 	directory) but this time use these as the arguments:
 	
-		$path\$file.$ext $path\$file.temp.$ext -cleanup
+		$path\$file.$ext $path\$file.temp.$ext --cleanup
 		
 	Specifically, this will delete the .temp.vmf that vmfii.exe created since
 	it isn't needed again, and will rename the .temp.prt file vbsp.exe created
