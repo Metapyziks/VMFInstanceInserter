@@ -16,6 +16,10 @@
 			"BasisU" : "offset",
 			"BasisV" : "offset",
 			"sides" : "identifier"
+		},
+		"env_cubemap" :
+		{
+			"sides" : "identifier"
 		}
 	},
 	"inputs" :

@@ -15,6 +15,7 @@ namespace VMFInstanceInserter
         public VMFStructure World { get; private set; }
 
         public int LastID { get; private set; }
+        public int LastNodeID { get; private set; }
 
         public VMFFile(String path, String rootDir = null)
         {
@@ -55,6 +56,7 @@ namespace VMFInstanceInserter
             }
 
             LastID = Root.GetLastID();
+            LastNodeID = Root.GetLastNodeID();
 
             stVMFCache.Add(path, this);
         }
@@ -131,7 +133,7 @@ namespace VMFInstanceInserter
 
                         foreach (VMFStructure worldStruct in vmf.World) {
                             if (worldStruct.Type == VMFStructureType.Group || worldStruct.Type == VMFStructureType.Solid) {
-                                VMFStructure clone = worldStruct.Clone(LastID, fixupStyle, targetName);
+                                VMFStructure clone = worldStruct.Clone(LastID, LastNodeID, fixupStyle, targetName);
                                 clone.Transform(originVal, anglesVal);
                                 World.Structures.Add(clone);
                             }
@@ -141,7 +143,7 @@ namespace VMFInstanceInserter
 
                         foreach (VMFStructure rootStruct in vmf.Root) {
                             if (rootStruct.Type == VMFStructureType.Entity) {
-                                VMFStructure clone = rootStruct.Clone(LastID, fixupStyle, targetName);
+                                VMFStructure clone = rootStruct.Clone(LastID, LastNodeID, fixupStyle, targetName);
                                 clone.ReplaceProperties(replacements);
                                 clone.Transform(originVal, anglesVal);
                                 Root.Structures.Insert(index++, clone);
@@ -149,6 +151,7 @@ namespace VMFInstanceInserter
                         }
 
                         LastID = Root.GetLastID();
+                        LastNodeID = Root.GetLastNodeID();
                     }
                 }
             }

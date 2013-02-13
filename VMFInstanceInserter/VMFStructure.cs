@@ -230,7 +230,7 @@ namespace VMFInstanceInserter
         }
 
         private static readonly Dictionary<String, TransformType> stDefaultEntDict = new Dictionary<string,TransformType>();
-        private VMFStructure(VMFStructure clone, int idOffset, TargetNameFixupStyle fixupStyle, String targetName)
+        private VMFStructure(VMFStructure clone, int idOffset, int nodeOffset, TargetNameFixupStyle fixupStyle, String targetName)
         {
             Type = clone.Type;
 
@@ -265,12 +265,11 @@ namespace VMFInstanceInserter
                         kvClone.Value.String = String.Join(",", split);
                     }
                 } else {
-                    if (Type == VMFStructureType.Side && clone.ID == 143)
-                        myIDIndex = myIDIndex;
-
-                    if (kvClone.Key == "groupid")
+                    if (kvClone.Key == "groupid") {
                         ((VMFNumberValue) kvClone.Value).Value += idOffset;
-                    else if (Type == VMFStructureType.Entity) {
+                    } if (kvClone.Key == "nodeid") {
+                        ((VMFNumberValue) kvClone.Value).Value += nodeOffset;
+                    } else if (Type == VMFStructureType.Entity) {
                         TransformType trans = entDict.ContainsKey(kvClone.Key) ? entDict[kvClone.Key] : TransformType.None;
 
                         if (trans == TransformType.Identifier) {
@@ -285,7 +284,7 @@ namespace VMFInstanceInserter
             }
 
             foreach (VMFStructure structure in clone.Structures)
-                Structures.Add(new VMFStructure(structure, idOffset, fixupStyle, targetName));
+                Structures.Add(new VMFStructure(structure, idOffset, nodeOffset, fixupStyle, targetName));
 
             ID += idOffset;
         }
@@ -346,9 +345,9 @@ namespace VMFInstanceInserter
             writer.Flush();
         }
 
-        public VMFStructure Clone(int idOffset = 0, TargetNameFixupStyle fixupStyle = TargetNameFixupStyle.None, String targetName = null)
+        public VMFStructure Clone(int idOffset = 0, int nodeOffset = 0, TargetNameFixupStyle fixupStyle = TargetNameFixupStyle.None, String targetName = null)
         {
-            return new VMFStructure(this, idOffset, fixupStyle, targetName);
+            return new VMFStructure(this, idOffset, nodeOffset, fixupStyle, targetName);
         }
 
         public void ReplaceProperties(List<KeyValuePair<String, String>> dict)
@@ -421,6 +420,16 @@ namespace VMFInstanceInserter
 
             foreach (VMFStructure structure in Structures)
                 max = Math.Max(structure.GetLastID(), max);
+
+            return max;
+        }
+
+        public int GetLastNodeID()
+        {
+            int max = ContainsKey("nodeid") ? (int) ((VMFNumberValue) this["nodeid"]).Value : 0;
+
+            foreach (VMFStructure structure in Structures)
+                max = Math.Max(structure.GetLastNodeID(), max);
 
             return max;
         }
