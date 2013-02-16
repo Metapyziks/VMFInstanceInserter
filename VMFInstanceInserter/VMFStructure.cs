@@ -180,7 +180,7 @@ namespace VMFInstanceInserter
 
         private static String FixupName(String name, TargetNameFixupStyle fixupStyle, String targetName)
         {
-            if (fixupStyle == TargetNameFixupStyle.None || targetName == null || name.StartsWith("@"))
+            if (fixupStyle == TargetNameFixupStyle.None || targetName == null || name.StartsWith("@") || name.StartsWith("!"))
                 return name;
 
             switch (fixupStyle) {
