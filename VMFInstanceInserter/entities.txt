@@ -4,7 +4,7 @@
 		"func_areaportalwindow" :
 		{
 			"target" : "entity"
-		}
+		},
 		"func_button" :
 		{
 			"movedir" : "angle"
@@ -24,7 +24,7 @@
 		"env_cubemap" :
 		{
 			"sides" : "identifier"
-		}
+		},
 		"env_soundscape" :
 		{
 			"position0" : "entity",
@@ -35,7 +35,7 @@
 			"position5" : "entity",
 			"position6" : "entity",
 			"position7" : "entity"
-		}
+		},
 		"env_soundscape_triggerable" :
 		{
 			"position0" : "entity",
@@ -46,15 +46,15 @@
 			"position5" : "entity",
 			"position6" : "entity",
 			"position7" : "entity"
-		}
+		},
 		"env_soundscape_proxy" :
 		{
 			"MainSoundscapeName" : "entity"
-		}
+		},
 		"move_rope" :
 		{
 			"NextKey" : "entity"
-		}
+		},
 		"keyframe_rope" :
 		{
 			"NextKey" : "entity"
