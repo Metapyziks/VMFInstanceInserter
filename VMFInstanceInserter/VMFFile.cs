@@ -78,7 +78,7 @@ namespace VMFInstanceInserter
 
                         VMFStringValue fileVal = structure["file"] as VMFStringValue;
                         VMFVector3Value originVal = (structure["origin"] as VMFVector3Value) ?? new VMFVector3Value { X = 0, Y = 0, Z = 0 };
-                        VMFVector3Value anglesVal = (structure["angles"] as VMFVector3Value) ?? new VMFVector3Value { X = 0, Y = 0, Z = 0 };
+                        VMFVector3Value anglesVal = (structure["angles"] as VMFVector3Value) ?? new VMFVector3Value { Pitch = 0, Roll = 0, Yaw = 0 };
                         VMFNumberValue fixup_styleVal = (structure["fixup_style"] as VMFNumberValue) ?? new VMFNumberValue { Value = 0 };
                         VMFValue targetnameVal = structure["targetname"];
 
@@ -113,7 +113,7 @@ namespace VMFInstanceInserter
                             continue;
                         }
 
-                        Console.WriteLine("Inserting instance of " + fileVal.String + " at (" + originVal.String + ")");
+                        Console.WriteLine("Inserting instance of {0} at ({1}), ({2})", fileVal.String, originVal.String, anglesVal.String);
 
                         String file = fileVal.String;
                         VMFFile vmf = null;

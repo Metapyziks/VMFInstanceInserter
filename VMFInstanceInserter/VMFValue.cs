@@ -178,6 +178,58 @@ namespace VMFInstanceInserter
 
     public class VMFVector3Value : VMFValue
     {
+        static VMFVector3Value()
+        {
+            double[,] mat; double pitch, yaw, roll;
+
+            VMFVector3Value[] tests = new VMFVector3Value[] {
+                new VMFVector3Value { Pitch = 0.0,  Yaw = 0.0,  Roll = 0.0  },
+                new VMFVector3Value { Pitch = 90.0, Yaw = 0.0,  Roll = 0.0  },
+                new VMFVector3Value { Pitch = 0.0,  Yaw = 90.0, Roll = 0.0  },
+                new VMFVector3Value { Pitch = 0.0,  Yaw = 00.0, Roll = 90.0 },
+                new VMFVector3Value { Pitch = 90.0, Yaw = 90.0, Roll = 0.0  },
+                new VMFVector3Value { Pitch = 90.0, Yaw = 0.0,  Roll = 90.0 },
+                new VMFVector3Value { Pitch = 0.0,  Yaw = 90.0, Roll = 90.0 },
+                new VMFVector3Value { Pitch = 90.0, Yaw = 90.0, Roll = 90.0 },
+            };
+
+            double error = 1.0 / 100.0;
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Testing 'FindAngles' on {0} rotations...", tests.Length);
+
+            int passes = 0;
+            foreach (var test in tests) {
+                mat = CreateRotation(test.Pitch, test.Yaw, test.Roll);
+                FindAngles(mat, out pitch, out yaw, out roll);
+                VMFVector3Value output = new VMFVector3Value { Pitch = pitch, Yaw = yaw, Roll = roll };
+
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write("  {0} -> {1} = ", test.String, output);
+
+
+                if (Math.Abs(test.Pitch - pitch) <= error && Math.Abs(test.Yaw - yaw) <= error && Math.Abs(test.Roll - roll) <= error) {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("Pass!");
+                    ++passes;
+                } else {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Fail!");
+                }
+            }
+
+            if (passes == tests.Length) {
+                Console.WriteLine("All tests passed!");
+            } else {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Passed {0} of {1} tests", passes, tests.Length);
+            }
+
+            Console.ResetColor();
+
+            return;
+        }
+
         public static readonly String Pattern = "\\[?" + VMFNumberValue.Pattern + " " + VMFNumberValue.Pattern + " " + VMFNumberValue.Pattern + "\\]?";
         public static readonly int Order = 3;
 
@@ -193,11 +245,13 @@ namespace VMFInstanceInserter
             get { return X; }
             set { X = value; }
         }
+
         public double Yaw
         {
             get { return Y; }
             set { Y = value; }
         }
+
         public double Roll
         {
             get { return Z; }
@@ -208,8 +262,9 @@ namespace VMFInstanceInserter
         {
             get
             {
-                if (myRotationMatrix == null)
-                    GenerateRotationMatrix();
+                if (myRotationMatrix == null) {
+                    myRotationMatrix = CreateRotation(Pitch, Yaw, Roll);
+                }
 
                 return myRotationMatrix;
             }
@@ -244,23 +299,7 @@ namespace VMFInstanceInserter
             return new VMFVector3Value { X = this.X, Y = this.Y, Z = this.Z, myInSqBracs = this.myInSqBracs };
         }
 
-        private void GenerateRotationMatrix()
-        {
-            double cosA, sinA, cosB, sinB, cosC, sinC;
-
-            GetCosAndSin(360 - Yaw, out cosA, out sinA);
-            GetCosAndSin(Pitch, out cosB, out sinB);
-            GetCosAndSin(Roll, out cosC, out sinC);
-
-            myRotationMatrix = new double[,]
-            {
-                { cosA * cosB, cosA * sinB * sinC - sinA * cosC, cosA * sinB * cosC + sinA * sinC },
-                { sinA * cosB, sinA * sinB * sinC + cosA * cosC, sinA * sinB * cosC - cosA * sinC },
-                { -sinB, sinB * sinC, cosB * cosC }
-            };
-        }
-
-        private void GetCosAndSin(double angle, out double cos, out double sin)
+        private static void GetCosAndSin(double angle, out double cos, out double sin)
         {
             angle -= Math.Floor(angle / 360.0) * 360.0;
             if (angle == Math.Round(angle)) {
@@ -282,6 +321,82 @@ namespace VMFInstanceInserter
             return;
         }
 
+        private static double[,] CreateRotationX(double angle)
+        {
+            double cos, sin;
+            GetCosAndSin(angle, out cos, out sin);
+
+            return new double[,] {
+                {  1.0,  0.0,  0.0  },
+                {  0.0,  cos, -sin  },
+                {  0.0,  sin,  cos  }
+            };
+        }
+
+        private static double[,] CreateRotationY(double angle)
+        {
+            double cos, sin;
+            GetCosAndSin(angle, out cos, out sin);
+
+            return new double[,] {
+                {  cos,  0.0,  sin  },
+                {  0.0,  1.0,  0.0  },
+                { -sin,  0.0,  cos  }
+            };
+        }
+
+        private static double[,] CreateRotationZ(double angle)
+        {
+            double cos, sin;
+            GetCosAndSin(angle, out cos, out sin);
+
+            return new double[,] {
+                {  cos, -sin,  0.0  },
+                {  sin,  cos,  0.0  },
+                {  0.0,  0.0,  1.0  }
+            };
+        }
+
+        private static VMFVector3Value Mult(double[,] m, VMFVector3Value v)
+        {
+            return new VMFVector3Value {
+                X = v.X * m[0, 0] + v.Y * m[0, 1] + v.Z * m[0, 2],
+                Y = v.X * m[1, 0] + v.Y * m[1, 1] + v.Z * m[1, 2],
+                Z = v.X * m[2, 0] + v.Y * m[2, 1] + v.Z * m[2, 2]
+            };
+        }
+
+        private static double[,] Mult(double[,] a, double[,] b)
+        {
+            double[,] o = new double[3, 3];
+
+            for (int r = 0; r < 3; ++r) {
+                for (int c = 0; c < 3; ++c) {
+                    for (int i = 0; i < 3; ++i) {
+                        o[r, c] += a[r, i] * b[i, c];
+                    }
+                }
+            }
+
+            return o;
+        }
+
+        private static double[,] CreateRotation(double pitch, double yaw, double roll)
+        {
+            return Mult(Mult(CreateRotationY(pitch), CreateRotationZ(yaw)), CreateRotationX(roll));
+        }
+
+        private static void FindAngles(double[,] mat, out double pitch, out double yaw, out double roll)
+        {
+            pitch = Math.Atan2(mat[0, 2], mat[0, 0]) / Math.PI * 180.0;
+            yaw = Math.Asin(mat[0, 1]) / Math.PI * 180.0;
+            roll = Math.Atan2(mat[2, 1], mat[1, 1]) / Math.PI * 180.0;
+
+            pitch -= Math.Floor(pitch / 360.0) * 360.0;
+            yaw -= Math.Floor(yaw / 360.0) * 360.0;
+            roll -= Math.Floor(roll / 360.0) * 360.0;
+        }
+
         public double Dot(VMFVector3Value vector)
         {
             return this.X * vector.X + this.Y * vector.Y + this.Z * vector.Z;
@@ -298,22 +413,22 @@ namespace VMFInstanceInserter
         {
             double[ , ] mat = angles.RotationMatrix;
 
-            double yaw = Yaw, pitch = Pitch, roll = Roll;
+            double x = X, y = Y, z = Z;
 
-            Yaw = yaw * mat[0, 0] + pitch * mat[0, 1] + roll * mat[0, 2];
-            Pitch = yaw * mat[1, 0] + pitch * mat[1, 1] + roll * mat[1, 2];
-            Roll = yaw * mat[2, 0] + pitch * mat[2, 1] + roll * mat[2, 2];
+            X = x * mat[0, 0] + y * mat[0, 1] + z * mat[0, 2];
+            Y = x * mat[1, 0] + y * mat[1, 1] + z * mat[1, 2];
+            Z = x * mat[2, 0] + y * mat[2, 1] + z * mat[2, 2];
         }
 
         public override void AddAngles(VMFVector3Value angles)
         {
-            Pitch += angles.Pitch;
-            Roll += angles.Roll;
-            Yaw += angles.Yaw;
-
-            Pitch -= Math.Floor(Pitch / 360.0) * 360.0;
-            Roll -= Math.Floor(Roll / 360.0) * 360.0;
-            Yaw -= Math.Floor(Yaw / 360.0) * 360.0;
+            var a = CreateRotation(Pitch, Yaw, Roll);
+            var b = CreateRotation(angles.Pitch, angles.Yaw, angles.Roll);
+            double pitch, yaw, roll;
+            FindAngles(Mult(b, a), out pitch, out yaw, out roll);
+            Pitch = pitch;
+            Yaw = yaw;
+            Roll = roll;
         }
 
         public override void OffsetIdentifiers(int offset)
