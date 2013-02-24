@@ -332,10 +332,9 @@ namespace VMFInstanceInserter
             if (mat[0, 0] < 0.0) yaw += 180.0;
 
             mat = Mult(CreateRotationZ(-yaw), mat);
-            pitch = Math.Atan2(-mat[2, 0], mat[0, 0]) / Math.PI * 180.0;
 
-            mat = Mult(CreateRotationY(-pitch), mat);
-            roll = Math.Atan2(mat[2, 1], mat[1, 1]) / Math.PI * 180.0;
+            pitch = Math.Atan2(-mat[2, 0], mat[0, 0]) / Math.PI * 180.0;
+            roll = Math.Atan2(-mat[1, 2], mat[1, 1]) / Math.PI * 180.0;
 
             yaw -= Math.Floor(yaw / 360.0) * 360.0;
             pitch -= Math.Floor(pitch / 360.0) * 360.0;
