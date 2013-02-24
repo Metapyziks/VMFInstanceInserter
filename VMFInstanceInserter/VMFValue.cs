@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Linq;
 using System.Globalization;
 
 namespace VMFInstanceInserter
@@ -178,35 +179,40 @@ namespace VMFInstanceInserter
 
     public class VMFVector3Value : VMFValue
     {
+#if DEBUG
         static VMFVector3Value()
         {
             double[,] mat; double pitch, yaw, roll;
 
-            VMFVector3Value[] tests = new VMFVector3Value[] {
-                new VMFVector3Value { Pitch = 0.0,  Yaw = 0.0,  Roll = 0.0  },
-                new VMFVector3Value { Pitch = 90.0, Yaw = 0.0,  Roll = 0.0  },
-                new VMFVector3Value { Pitch = 0.0,  Yaw = 90.0, Roll = 0.0  },
-                new VMFVector3Value { Pitch = 0.0,  Yaw = 00.0, Roll = 90.0 },
-                new VMFVector3Value { Pitch = 90.0, Yaw = 90.0, Roll = 0.0  },
-                new VMFVector3Value { Pitch = 90.0, Yaw = 0.0,  Roll = 90.0 },
-                new VMFVector3Value { Pitch = 0.0,  Yaw = 90.0, Roll = 90.0 },
-                new VMFVector3Value { Pitch = 90.0, Yaw = 90.0, Roll = 90.0 },
+            var toDebug = new VMFVector3Value[] {
+                new VMFVector3Value { Yaw = 135 }
             };
+
+            var tests = new List<VMFVector3Value>();
+            for (int i = 0; i < 8; ++i) for (int j = 0; j < 8; ++j) for (int k = 0; k < 8; ++k) tests.Add(new VMFVector3Value { Pitch = i * 45.0, Yaw = j * 45.0, Roll = k * 45.0 });
 
             double error = 1.0 / 100.0;
 
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Testing 'FindAngles' on {0} rotations...", tests.Length);
+            Console.WriteLine("Testing 'FindAngles' on {0} rotations...", tests.Count);
 
+            int attempted = 0;
             int passes = 0;
             foreach (var test in tests) {
+                //if (toDebug.Any(x => x.Pitch == test.Pitch && x.Yaw == test.Yaw && x.Roll == test.Roll)) {
+                //    System.Diagnostics.Debugger.Break();
+                //}
+
                 mat = CreateRotation(test.Pitch, test.Yaw, test.Roll);
                 FindAngles(mat, out pitch, out yaw, out roll);
-                VMFVector3Value output = new VMFVector3Value { Pitch = pitch, Yaw = yaw, Roll = roll };
+                VMFVector3Value output1 = new VMFVector3Value { Pitch = pitch, Yaw = yaw, Roll = roll };
+
+                mat = CreateRotation(pitch, yaw, roll);
+                FindAngles(mat, out pitch, out yaw, out roll);
+                VMFVector3Value output2 = new VMFVector3Value { Pitch = pitch, Yaw = yaw, Roll = roll };
 
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write("  {0} -> {1} = ", test.String, output);
-
+                Console.Write("  {0} -> {1} -> {2} = ", test.String, output1, output2);
 
                 if (Math.Abs(test.Pitch - pitch) <= error && Math.Abs(test.Yaw - yaw) <= error && Math.Abs(test.Roll - roll) <= error) {
                     Console.ForegroundColor = ConsoleColor.Green;
@@ -216,19 +222,25 @@ namespace VMFInstanceInserter
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("Fail!");
                 }
+                if ((++attempted & 63) == 0) {
+                    //Console.ForegroundColor = ConsoleColor.Yellow;
+                    //Console.WriteLine("Press any key for the next batch...");
+                    //Console.ReadKey();
+                }
             }
 
-            if (passes == tests.Length) {
+            if (passes == tests.Count) {
                 Console.WriteLine("All tests passed!");
             } else {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Passed {0} of {1} tests", passes, tests.Length);
+                Console.WriteLine("Passed {0} of {1} tests", passes, tests.Count);
             }
 
             Console.ResetColor();
 
             return;
         }
+#endif
 
         public static readonly String Pattern = "\\[?" + VMFNumberValue.Pattern + " " + VMFNumberValue.Pattern + " " + VMFNumberValue.Pattern + "\\]?";
         public static readonly int Order = 3;
@@ -383,14 +395,14 @@ namespace VMFInstanceInserter
 
         private static double[,] CreateRotation(double pitch, double yaw, double roll)
         {
-            return Mult(Mult(CreateRotationY(pitch), CreateRotationZ(yaw)), CreateRotationX(roll));
+            return Mult(Mult(CreateRotationZ(yaw), CreateRotationY(pitch)), CreateRotationX(roll));
         }
 
         private static void FindAngles(double[,] mat, out double pitch, out double yaw, out double roll)
         {
-            pitch = Math.Atan2(mat[0, 2], mat[0, 0]) / Math.PI * 180.0;
-            yaw = Math.Asin(mat[0, 1]) / Math.PI * 180.0;
-            roll = Math.Atan2(mat[2, 1], mat[1, 1]) / Math.PI * 180.0;
+            pitch = Math.Atan2(-mat[2, 0], mat[0, 0]) / Math.PI * 180.0;
+            yaw = Math.Asin(mat[1, 0]) / Math.PI * 180.0;
+            roll = Math.Atan2(-mat[1, 2], mat[1, 1]) / Math.PI * 180.0;
 
             pitch -= Math.Floor(pitch / 360.0) * 360.0;
             yaw -= Math.Floor(yaw / 360.0) * 360.0;
