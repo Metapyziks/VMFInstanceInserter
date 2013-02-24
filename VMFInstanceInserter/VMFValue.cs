@@ -395,14 +395,14 @@ namespace VMFInstanceInserter
 
         private static double[,] CreateRotation(double pitch, double yaw, double roll)
         {
-            return Mult(Mult(CreateRotationZ(yaw), CreateRotationY(pitch)), CreateRotationX(roll));
+            return Mult(CreateRotationZ(yaw), Mult(CreateRotationY(pitch), CreateRotationX(roll)));
         }
 
         private static void FindAngles(double[,] mat, out double pitch, out double yaw, out double roll)
         {
-            pitch = Math.Atan2(-mat[2, 0], mat[0, 0]) / Math.PI * 180.0;
-            yaw = Math.Asin(mat[1, 0]) / Math.PI * 180.0;
-            roll = Math.Atan2(-mat[1, 2], mat[1, 1]) / Math.PI * 180.0;
+            pitch = Math.Asin(-mat[2, 0]) / Math.PI * 180.0;
+            yaw = Math.Atan2(mat[1, 0], mat[0, 0]) / Math.PI * 180.0;
+            roll = Math.Atan2(mat[2, 1], mat[2, 2]) / Math.PI * 180.0;
 
             pitch -= Math.Floor(pitch / 360.0) * 360.0;
             yaw -= Math.Floor(yaw / 360.0) * 360.0;
