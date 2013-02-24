@@ -190,9 +190,7 @@ namespace VMFInstanceInserter
 
             var tests = new List<VMFVector3Value>();
             for (int i = 0; i < 8; ++i) for (int j = 0; j < 8; ++j) for (int k = 0; k < 8; ++k) tests.Add(new VMFVector3Value { Pitch = i * 45.0, Yaw = j * 45.0, Roll = k * 45.0 });
-
-            double error = 1.0 / 100.0;
-
+            
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Testing 'FindAngles' on {0} rotations...", tests.Count);
 
@@ -205,16 +203,13 @@ namespace VMFInstanceInserter
 
                 mat = CreateRotation(test.Pitch, test.Yaw, test.Roll);
                 FindAngles(mat, out pitch, out yaw, out roll);
-                VMFVector3Value output1 = new VMFVector3Value { Pitch = pitch, Yaw = yaw, Roll = roll };
-
-                mat = CreateRotation(pitch, yaw, roll);
-                FindAngles(mat, out pitch, out yaw, out roll);
-                VMFVector3Value output2 = new VMFVector3Value { Pitch = pitch, Yaw = yaw, Roll = roll };
+                VMFVector3Value output = new VMFVector3Value { Pitch = pitch, Yaw = yaw, Roll = roll };
+                double[,] res = CreateRotation(pitch, yaw, roll);
 
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write("  {0} -> {1} -> {2} = ", test.String, output1, output2);
+                Console.Write("  {0} -> {1} = ", test.String, output);
 
-                if (Math.Abs(test.Pitch - pitch) <= error && Math.Abs(test.Yaw - yaw) <= error && Math.Abs(test.Roll - roll) <= error) {
+                if (IsEquivalent(mat, res)) {
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("Pass!");
                     ++passes;
@@ -223,9 +218,9 @@ namespace VMFInstanceInserter
                     Console.WriteLine("Fail!");
                 }
                 if ((++attempted & 63) == 0) {
-                    //Console.ForegroundColor = ConsoleColor.Yellow;
-                    //Console.WriteLine("Press any key for the next batch...");
-                    //Console.ReadKey();
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("Press any key for the next batch...");
+                    Console.ReadKey();
                 }
             }
 
@@ -251,7 +246,7 @@ namespace VMFInstanceInserter
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
-
+        
         public double Pitch
         {
             get { return X; }
@@ -369,13 +364,9 @@ namespace VMFInstanceInserter
             };
         }
 
-        private static VMFVector3Value Mult(double[,] m, VMFVector3Value v)
+        private static double[,] CreateRotation(double pitch, double yaw, double roll)
         {
-            return new VMFVector3Value {
-                X = v.X * m[0, 0] + v.Y * m[0, 1] + v.Z * m[0, 2],
-                Y = v.X * m[1, 0] + v.Y * m[1, 1] + v.Z * m[1, 2],
-                Z = v.X * m[2, 0] + v.Y * m[2, 1] + v.Z * m[2, 2]
-            };
+            return Mult(CreateRotationZ(yaw), Mult(CreateRotationY(pitch), CreateRotationX(roll)));
         }
 
         private static double[,] Mult(double[,] a, double[,] b)
@@ -393,19 +384,38 @@ namespace VMFInstanceInserter
             return o;
         }
 
-        private static double[,] CreateRotation(double pitch, double yaw, double roll)
+        private static readonly double[,] _sTestMat = CreateRotationX(0.0);
+        private static bool IsEquivalent(double[,] a, double[,] b)
         {
-            return Mult(CreateRotationZ(yaw), Mult(CreateRotationY(pitch), CreateRotationX(roll)));
+            double[,] ares = Mult(a, _sTestMat);
+            double[,] bres = Mult(b, _sTestMat);
+
+            const double error = 1.0 / 100.0;
+
+            for (int r = 0; r < 3; ++r) {
+                for (int c = 0; c < 3; ++c) {
+                    if (Math.Abs(ares[r, c] - bres[r, c]) > error) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         private static void FindAngles(double[,] mat, out double pitch, out double yaw, out double roll)
         {
-            pitch = Math.Asin(-mat[2, 0]) / Math.PI * 180.0;
             yaw = Math.Atan2(mat[1, 0], mat[0, 0]) / Math.PI * 180.0;
-            roll = Math.Atan2(mat[2, 1], mat[2, 2]) / Math.PI * 180.0;
+            if (mat[0, 0] < 0.0) yaw += 180.0;
 
-            pitch -= Math.Floor(pitch / 360.0) * 360.0;
+            mat = Mult(CreateRotationZ(-yaw), mat);
+            pitch = Math.Atan2(-mat[2, 0], mat[0, 0]) / Math.PI * 180.0;
+
+            mat = Mult(CreateRotationY(-pitch), mat);
+            roll = Math.Atan2(mat[2, 1], mat[1, 1]) / Math.PI * 180.0;
+
             yaw -= Math.Floor(yaw / 360.0) * 360.0;
+            pitch -= Math.Floor(pitch / 360.0) * 360.0;
             roll -= Math.Floor(roll / 360.0) * 360.0;
         }
 
