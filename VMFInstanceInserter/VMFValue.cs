@@ -179,64 +179,6 @@ namespace VMFInstanceInserter
 
     public class VMFVector3Value : VMFValue
     {
-#if DEBUG
-        static VMFVector3Value()
-        {
-            double[,] mat; double pitch, yaw, roll;
-
-            var toDebug = new VMFVector3Value[] {
-                new VMFVector3Value { Yaw = 135 }
-            };
-
-            var tests = new List<VMFVector3Value>();
-            for (int i = 0; i < 8; ++i) for (int j = 0; j < 8; ++j) for (int k = 0; k < 8; ++k) tests.Add(new VMFVector3Value { Pitch = i * 45.0, Yaw = j * 45.0, Roll = k * 45.0 });
-            
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Testing 'FindAngles' on {0} rotations...", tests.Count);
-
-            int attempted = 0;
-            int passes = 0;
-            foreach (var test in tests) {
-                //if (toDebug.Any(x => x.Pitch == test.Pitch && x.Yaw == test.Yaw && x.Roll == test.Roll)) {
-                //    System.Diagnostics.Debugger.Break();
-                //}
-
-                mat = CreateRotation(test.Pitch, test.Yaw, test.Roll);
-                FindAngles(mat, out pitch, out yaw, out roll);
-                VMFVector3Value output = new VMFVector3Value { Pitch = pitch, Yaw = yaw, Roll = roll };
-                double[,] res = CreateRotation(pitch, yaw, roll);
-
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write("  {0} -> {1} = ", test.String, output);
-
-                if (IsEquivalent(mat, res)) {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("Pass!");
-                    ++passes;
-                } else {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Fail!");
-                }
-                if ((++attempted & 63) == 0) {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine("Press any key for the next batch...");
-                    Console.ReadKey();
-                }
-            }
-
-            if (passes == tests.Count) {
-                Console.WriteLine("All tests passed!");
-            } else {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Passed {0} of {1} tests", passes, tests.Count);
-            }
-
-            Console.ResetColor();
-
-            return;
-        }
-#endif
-
         public static readonly String Pattern = "\\[?" + VMFNumberValue.Pattern + " " + VMFNumberValue.Pattern + " " + VMFNumberValue.Pattern + "\\]?";
         public static readonly int Order = 3;
 
@@ -382,25 +324,6 @@ namespace VMFInstanceInserter
             }
 
             return o;
-        }
-
-        private static readonly double[,] _sTestMat = CreateRotationX(0.0);
-        private static bool IsEquivalent(double[,] a, double[,] b)
-        {
-            double[,] ares = Mult(a, _sTestMat);
-            double[,] bres = Mult(b, _sTestMat);
-
-            const double error = 1.0 / 100.0;
-
-            for (int r = 0; r < 3; ++r) {
-                for (int c = 0; c < 3; ++c) {
-                    if (Math.Abs(ares[r, c] - bres[r, c]) > error) {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
         }
 
         private static void FindAngles(double[,] mat, out double pitch, out double yaw, out double roll)
