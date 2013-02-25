@@ -329,10 +329,8 @@ namespace VMFInstanceInserter
         private static void FindAngles(double[,] mat, out double pitch, out double yaw, out double roll)
         {
             yaw = Math.Atan2(mat[1, 0], mat[0, 0]) / Math.PI * 180.0;
-            if (mat[0, 0] < 0.0) yaw += 180.0;
 
             mat = Mult(CreateRotationZ(-yaw), mat);
-
             pitch = Math.Atan2(-mat[2, 0], mat[0, 0]) / Math.PI * 180.0;
             roll = Math.Atan2(-mat[1, 2], mat[1, 1]) / Math.PI * 180.0;
 
