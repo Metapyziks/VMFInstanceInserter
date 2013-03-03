@@ -2,7 +2,7 @@ versioninfo
 {
 	"editorversion" "400"
 	"editorbuild" "5845"
-	"mapversion" "30"
+	"mapversion" "31"
 	"formatversion" "100"
 	"prefab" "0"
 }
@@ -20,7 +20,7 @@ viewsettings
 world
 {
 	"id" "1"
-	"mapversion" "30"
+	"mapversion" "31"
 	"classname" "worldspawn"
 	"detailmaterial" "detail/detailsprites"
 	"detailvbsp" "detail.vbsp"
@@ -602,13 +602,63 @@ entity
 		"logicalpos" "[0 0]"
 	}
 }
+entity
+{
+	"id" "740"
+	"classname" "prop_door_rotating"
+	"ajarangles" "0 0 0"
+	"angles" "0 270 0"
+	"axis" "-32 64 56, -32 64 56"
+	"distance" "90"
+	"hardware" "1"
+	"model" "models/props_c17/door01_left.mdl"
+	"returndelay" "-1"
+	"skin" "0"
+	"slavename" "doorb"
+	"spawnflags" "8192"
+	"speed" "100"
+	"targetname" "doora"
+	"origin" "-32 64 56"
+	editor
+	{
+		"color" "220 30 220"
+		"visgroupshown" "1"
+		"visgroupautoshown" "1"
+		"logicalpos" "[0 0]"
+	}
+}
+entity
+{
+	"id" "779"
+	"classname" "prop_door_rotating"
+	"ajarangles" "0 0 0"
+	"angles" "0 90 0"
+	"axis" "64 64 56, 64 64 56"
+	"distance" "90"
+	"hardware" "1"
+	"model" "models/props_c17/door01_left.mdl"
+	"returndelay" "-1"
+	"skin" "0"
+	"slavename" "doora"
+	"spawnflags" "8192"
+	"speed" "100"
+	"targetname" "doorb"
+	"origin" "64 64 56"
+	editor
+	{
+		"color" "220 30 220"
+		"visgroupshown" "1"
+		"visgroupautoshown" "1"
+		"logicalpos" "[0 0]"
+	}
+}
 cameras
 {
 	"activecamera" "0"
 	camera
 	{
-		"position" "[178.919 -271.856 346.311]"
-		"look" "[178.803 -271.565 345.361]"
+		"position" "[80.5081 1.44569 91.698]"
+		"look" "[80.0112 2.08774 91.1135]"
 	}
 }
 cordon

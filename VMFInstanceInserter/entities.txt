@@ -21,6 +21,10 @@
 			"BasisV" : "offset",
 			"sides" : "identifier"
 		},
+		"prop_door_rotating" :
+		{
+		    "slavename" : "entity"
+		},
 		"env_cubemap" :
 		{
 			"sides" : "identifier"
