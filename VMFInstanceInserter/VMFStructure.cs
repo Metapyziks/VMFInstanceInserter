@@ -230,7 +230,7 @@ namespace VMFInstanceInserter
         }
 
         private static readonly Dictionary<String, TransformType> stDefaultEntDict = new Dictionary<string,TransformType>();
-        private VMFStructure(VMFStructure clone, int idOffset, int nodeOffset, TargetNameFixupStyle fixupStyle, String targetName)
+        private VMFStructure(VMFStructure clone, int idOffset, int nodeOffset, TargetNameFixupStyle fixupStyle, String targetName, List<KeyValuePair<String, String>> replacements)
         {
             Type = clone.Type;
 
@@ -248,7 +248,13 @@ namespace VMFInstanceInserter
             }
 
             foreach (KeyValuePair<String, VMFValue> keyVal in clone.Properties) {
-                KeyValuePair<String, VMFValue> kvClone = new KeyValuePair<string, VMFValue>(keyVal.Key, keyVal.Value.Clone());
+                String str = keyVal.Value.String;
+                if (replacements != null && str.Contains("$")) {
+                    foreach (KeyValuePair<String, String> repKeyVal in replacements)
+                        str = str.Replace(repKeyVal.Key, repKeyVal.Value);
+                }
+
+                KeyValuePair<String, VMFValue> kvClone = new KeyValuePair<string, VMFValue>(keyVal.Key, VMFValue.Parse(str));
 
                 if (Type == VMFStructureType.Connections) {
                     if (fixupStyle != TargetNameFixupStyle.None && targetName != null) {
@@ -284,7 +290,7 @@ namespace VMFInstanceInserter
             }
 
             foreach (VMFStructure structure in clone.Structures)
-                Structures.Add(new VMFStructure(structure, idOffset, nodeOffset, fixupStyle, targetName));
+                Structures.Add(new VMFStructure(structure, idOffset, nodeOffset, fixupStyle, targetName, replacements));
 
             ID += idOffset;
         }
@@ -345,30 +351,9 @@ namespace VMFInstanceInserter
             writer.Flush();
         }
 
-        public VMFStructure Clone(int idOffset = 0, int nodeOffset = 0, TargetNameFixupStyle fixupStyle = TargetNameFixupStyle.None, String targetName = null)
+        public VMFStructure Clone(int idOffset = 0, int nodeOffset = 0, TargetNameFixupStyle fixupStyle = TargetNameFixupStyle.None, String targetName = null, List<KeyValuePair<String, String>> replacements = null)
         {
-            return new VMFStructure(this, idOffset, nodeOffset, fixupStyle, targetName);
-        }
-
-        public void ReplaceProperties(List<KeyValuePair<String, String>> dict)
-        {
-            if (Type == VMFStructureType.Entity || Type == VMFStructureType.Connections) {
-                for (int i = 0; i < Properties.Count; ++i) {
-                    String str = Properties[i].Value.String;
-
-                    if (str.Contains('$')) {
-                        foreach (KeyValuePair<String, String> keyVal in dict)
-                            str = str.Replace(keyVal.Key, keyVal.Value);
-
-                        Properties[i] = new KeyValuePair<string, VMFValue>(Properties[i].Key, VMFValue.Parse(str));
-                    }
-                }
-
-                if (Type == VMFStructureType.Entity)
-                    foreach (VMFStructure strct in Structures)
-                        if (strct.Type == VMFStructureType.Connections)
-                            strct.ReplaceProperties(dict);
-            }
+            return new VMFStructure(this, idOffset, nodeOffset, fixupStyle, targetName, replacements);
         }
 
         public void Transform(VMFVector3Value translation, VMFVector3Value rotation)

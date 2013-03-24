@@ -133,7 +133,7 @@ namespace VMFInstanceInserter
 
                         foreach (VMFStructure worldStruct in vmf.World) {
                             if (worldStruct.Type == VMFStructureType.Group || worldStruct.Type == VMFStructureType.Solid) {
-                                VMFStructure clone = worldStruct.Clone(LastID, LastNodeID, fixupStyle, targetName);
+                                VMFStructure clone = worldStruct.Clone(LastID, LastNodeID, fixupStyle, targetName, replacements);
                                 clone.Transform(originVal, anglesVal);
                                 World.Structures.Add(clone);
                             }
@@ -143,8 +143,7 @@ namespace VMFInstanceInserter
 
                         foreach (VMFStructure rootStruct in vmf.Root) {
                             if (rootStruct.Type == VMFStructureType.Entity) {
-                                VMFStructure clone = rootStruct.Clone(LastID, LastNodeID, fixupStyle, targetName);
-                                clone.ReplaceProperties(replacements);
+                                VMFStructure clone = rootStruct.Clone(LastID, LastNodeID, fixupStyle, targetName, replacements);
                                 clone.Transform(originVal, anglesVal);
                                 Root.Structures.Insert(index++, clone);
                             }
