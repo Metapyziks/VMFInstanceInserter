@@ -13,6 +13,14 @@
 		{
 			"movedir" : "angle"
 		},
+		"func_breakable_surf" :
+		{
+			"upperleft" : "position",
+			"upperright" : "position",
+			"lowerleft" : "position",
+			"lowerright" : "position",
+			"gibdir" : "offset"
+		},
 		"info_overlay" :
 		{
 			"BasisOrigin" : "position",
