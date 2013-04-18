@@ -500,6 +500,8 @@ namespace VMFInstanceInserter
 
         public VMFVector3Value[] Vectors { get; set; }
 
+        private bool myInBracs = true;
+
         public override string String
         {
             get
@@ -507,20 +509,40 @@ namespace VMFInstanceInserter
                 if (Vectors.Length == 0)
                     return "";
 
-                String str = "(" + Vectors[0].String + ")";
-                for (int i = 1; i < Vectors.Length; ++i)
-                    str += " (" + Vectors[i].String + ")";
-
-                return str;
+                if (myInBracs) {
+                    String str = "(" + Vectors[0].String + ")";
+                    for (int i = 1; i < Vectors.Length; ++i)
+                        str += " (" + Vectors[i].String + ")";
+                    return str;
+                } else {
+                    String str = Vectors[0].String;
+                    for (int i = 1; i < Vectors.Length; ++i)
+                        str += " " + Vectors[i].String;
+                    return str;
+                }
             }
             set
             {
-                String[] vects = value.Trim('(', ')').Split(new String[] { ") (" }, StringSplitOptions.None);
+                myInBracs = value.Contains('(');
 
-                Vectors = new VMFVector3Value[vects.Length];
-                for (int i = 0; i < vects.Length; ++i) {
+                IEnumerable<String> vects;
+
+                if (myInBracs) {
+                    vects = value.Trim('(', ')').Split(new String[] { ") (" }, StringSplitOptions.None);
+                } else {
+                    var regex = new Regex(VMFVector3Value.Pattern);
+                    var match = regex.Match(value);
+                    vects = new List<String>();
+                    while (match.Success) {
+                        ((List<String>) vects).Add(match.Value);
+                        match = match.NextMatch();
+                    }
+                }
+
+                Vectors = new VMFVector3Value[vects.Count()];
+                for (int i = 0; i < vects.Count(); ++i) {
                     Vectors[i] = new VMFVector3Value();
-                    Vectors[i].String = vects[i];
+                    Vectors[i].String = vects.ElementAt(i);
                 }
             }
         }
@@ -528,6 +550,7 @@ namespace VMFInstanceInserter
         public override VMFValue Clone()
         {
             VMFVector3ArrayValue arr = new VMFVector3ArrayValue();
+            arr.myInBracs = myInBracs;
             arr.Vectors = new VMFVector3Value[Vectors.Length];
             for (int i = 0; i < Vectors.Length; ++i)
                 arr.Vectors[i] = (VMFVector3Value) Vectors[i].Clone();

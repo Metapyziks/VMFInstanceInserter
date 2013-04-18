@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 using ResourceLib;
 
@@ -71,6 +72,18 @@ namespace VMFInstanceInserter
                 { "origin", TransformType.Position },
                 { "_shadoworiginoffset", TransformType.Offset },
                 { "angles", TransformType.Angle }
+            } },
+            { VMFStructureType.DispInfo, new Dictionary<String, TransformType>
+            {
+                { "startposition", TransformType.Position }
+            } },
+            { VMFStructureType.Normals, new Dictionary<String, TransformType>
+            {
+                { "row[0-9]+", TransformType.Offset }
+            } },
+            { VMFStructureType.Offset_Normals, new Dictionary<String, TransformType>
+            {
+                { "row[0-9]+", TransformType.Offset }
             } }
         };
 
@@ -249,15 +262,23 @@ namespace VMFInstanceInserter
 
             foreach (KeyValuePair<String, VMFValue> keyVal in clone.Properties) {
                 String str = keyVal.Value.String;
+                bool fixup = true;
                 if (replacements != null && str.Contains("$")) {
+                    fixup = false;
                     foreach (KeyValuePair<String, String> repKeyVal in replacements)
                         str = str.Replace(repKeyVal.Key, repKeyVal.Value);
                 }
 
-                KeyValuePair<String, VMFValue> kvClone = new KeyValuePair<string, VMFValue>(keyVal.Key, VMFValue.Parse(str));
+                KeyValuePair<String, VMFValue> kvClone;
+
+                if (keyVal.Value is VMFVector3ArrayValue) {
+                    kvClone = new KeyValuePair<string, VMFValue>(keyVal.Key, new VMFVector3ArrayValue() { String = str } );
+                } else {
+                    kvClone = new KeyValuePair<string, VMFValue>(keyVal.Key, VMFValue.Parse(str));
+                }
 
                 if (Type == VMFStructureType.Connections) {
-                    if (fixupStyle != TargetNameFixupStyle.None && targetName != null) {
+                    if (fixup && fixupStyle != TargetNameFixupStyle.None && targetName != null) {
                         String[] split = kvClone.Value.String.Split(',');
                         split[0] = FixupName(split[0], fixupStyle, targetName);
                         if (stInputsDict.ContainsKey(split[1])) {
@@ -280,7 +301,7 @@ namespace VMFInstanceInserter
 
                         if (trans == TransformType.Identifier) {
                             kvClone.Value.OffsetIdentifiers(idOffset);
-                        } else if ((kvClone.Key == "targetname" || trans == TransformType.EntityName) && fixupStyle != TargetNameFixupStyle.None && targetName != null) {
+                        } else if (fixup && (kvClone.Key == "targetname" || trans == TransformType.EntityName) && fixupStyle != TargetNameFixupStyle.None && targetName != null) {
                             ((VMFStringValue) kvClone.Value).String = FixupName(((VMFStringValue) kvClone.Value).String, fixupStyle, targetName);
                         }
                     }
@@ -317,7 +338,13 @@ namespace VMFInstanceInserter
                     if (pair.Length != 2)
                         continue;
 
-                    KeyValuePair<String, VMFValue> keyVal = new KeyValuePair<string, VMFValue>(pair[0], VMFValue.Parse(pair[1]));
+                    KeyValuePair<String, VMFValue> keyVal;
+                    
+                    if (Type == VMFStructureType.Normals || Type == VMFStructureType.Offsets || Type == VMFStructureType.Offset_Normals) {
+                        keyVal = new KeyValuePair<string,VMFValue>(pair[0], new VMFVector3ArrayValue() { String = pair[1] });
+                    } else {
+                        keyVal = new KeyValuePair<string,VMFValue>(pair[0], VMFValue.Parse(pair[1]));
+                    }
 
                     if (keyVal.Key == "id" && keyVal.Value is VMFNumberValue)
                         myIDIndex = Properties.Count;
@@ -374,8 +401,13 @@ namespace VMFInstanceInserter
                 foreach (KeyValuePair<String, VMFValue> keyVal in Properties) {
                     TransformType trans = TransformType.None;
 
-                    if (transDict != null && transDict.ContainsKey(keyVal.Key))
-                        trans = transDict[keyVal.Key];
+                    if (transDict != null) {
+                        foreach (String key in transDict.Keys) {
+                            if (Regex.IsMatch(keyVal.Key, key)) {
+                                trans = transDict[key];
+                            }
+                        }
+                    }
 
                     if (entDict != null && entDict.ContainsKey(keyVal.Key))
                         trans = entDict[keyVal.Key];
