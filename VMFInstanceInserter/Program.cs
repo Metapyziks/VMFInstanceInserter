@@ -9,6 +9,10 @@ namespace VMFInstanceInserter
     {
         static void Main(string[] args)
         {
+#if !DEBUG
+            Directory.SetCurrentDirectory(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location));
+#endif
+
             List<String> paths = new List<string>();
             bool cleanup = false;
 

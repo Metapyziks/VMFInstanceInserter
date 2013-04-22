@@ -70,8 +70,9 @@ namespace VMFInstanceInserter
             { VMFStructureType.Entity, new Dictionary<String, TransformType>
             {
                 { "origin", TransformType.Position },
-                { "_shadoworiginoffset", TransformType.Offset },
-                { "angles", TransformType.Angle }
+                { "angles", TransformType.Angle },
+                { "targetname", TransformType.EntityName },
+                { "parentname", TransformType.EntityName }
             } },
             { VMFStructureType.DispInfo, new Dictionary<String, TransformType>
             {
@@ -185,6 +186,7 @@ namespace VMFInstanceInserter
         private static readonly Regex _sIncludeRegex = new Regex("^@include \"[^\"]+\"");
         private static readonly Regex _sClassTypeRegex = new Regex("^@[A-Z][a-z]*Class( |=)");
         private static readonly Regex _sBaseDefRegex = new Regex("base\\(\\s*[A-Za-z0-9_]+(\\s*,\\s*[A-Za-z0-9_]+)*\\s*\\)");
+        private static readonly Regex _sParamDefRegex = new Regex("^[a-zA-Z0-9_]+\\s*\\(\\s*[A-Za-z0-9_]+\\s*\\)\\s*:.*$");
         public static void ParseFGD(String path)
         {
             Console.WriteLine("Loading {0}", Path.GetFileName(path));
@@ -242,6 +244,36 @@ namespace VMFInstanceInserter
                         }
 
                         basesMatch = basesMatch.NextMatch();
+                    }
+                } else if (curDict != null && _sParamDefRegex.IsMatch(line)) {
+                    int start = line.IndexOf('(') + 1;
+                    int end = line.IndexOf(')', start);
+                    string name = line.Substring(0, start - 1).TrimEnd();
+                    string typeName = line.Substring(start, end - start).Trim().ToLower();
+                    TransformType type = TransformType.None;
+                    switch (typeName) {
+                        case "angle":
+                            type = TransformType.Angle;
+                            break;
+                        case "origin":
+                            type = TransformType.Position;
+                            break;
+                        case "target_destination":
+                        case "target_source":
+                            type = TransformType.EntityName;
+                            break;
+                        case "vector":
+                            type = TransformType.Offset;
+                            break;
+                        case "sidelist":
+                            type = TransformType.Identifier;
+                            break;
+                    }
+
+                    if (!curDict.ContainsKey(name)) {
+                        curDict.Add(name, type);
+                    } else {
+                        curDict[name] = type;
                     }
                 }
             }
