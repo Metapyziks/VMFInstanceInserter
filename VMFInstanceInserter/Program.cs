@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace VMFInstanceInserter
 {
@@ -11,7 +12,10 @@ namespace VMFInstanceInserter
             List<String> paths = new List<string>();
             bool cleanup = false;
 
-            foreach (String arg in args) {
+            string[] fgdpaths = new string[0];
+
+            for (int i = 0; i < args.Length; ++i) {
+                string arg = args[i];
                 if (!arg.StartsWith("-"))
                     paths.Add(arg);
                 else {
@@ -19,6 +23,10 @@ namespace VMFInstanceInserter
                         case "c":
                         case "-cleanup":
                             cleanup = true;
+                            break;
+                        case "d":
+                        case "-fgd":
+                            fgdpaths = args[++i].Split(',').Select(x => x.Trim()).ToArray();
                             break;
                     }
                 }
@@ -52,6 +60,9 @@ namespace VMFInstanceInserter
                     File.Move(tempPrt, prt);
                 }
             } else {
+                foreach (String path in fgdpaths) {
+                    VMFStructure.ParseFGD(path);
+                }
 
                 VMFFile file = new VMFFile(vmf);
                 file.ResolveInstances();

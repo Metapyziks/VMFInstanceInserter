@@ -156,6 +156,97 @@ namespace VMFInstanceInserter
             }
         }
 
+        private static string TrimFGDLine(String line)
+        {
+            line = line.Trim();
+
+            bool escaped = false;
+            bool inString = false;
+            for (int i = 0; i < line.Length; ++i) {
+                char c = line[i];
+                if (escaped) {
+                    escaped = false; break;
+                }
+                
+                if (c == '\\') {
+                    escaped = true;
+                } else if (c == '"') {
+                    inString = !inString;
+                } else if (!inString && c == '/') {
+                    if (i < line.Length - 1 && line[i + 1] == '/') {
+                        return line.Substring(0, i).TrimEnd();
+                    }
+                }
+            }
+
+            return line;
+        }
+
+        private static readonly Regex _sIncludeRegex = new Regex("^@include \"[^\"]+\"");
+        private static readonly Regex _sClassTypeRegex = new Regex("^@[A-Z][a-z]*Class( |=)");
+        private static readonly Regex _sBaseDefRegex = new Regex("base\\(\\s*[A-Za-z0-9_]+(\\s*,\\s*[A-Za-z0-9_]+)*\\s*\\)");
+        public static void ParseFGD(String path)
+        {
+            Console.WriteLine("Loading {0}", Path.GetFileName(path));
+
+            if (!File.Exists(path)) {
+                Console.WriteLine("File does not exist!");
+                return;
+            }
+
+            StreamReader reader = new StreamReader(path);
+
+            String curName = null;
+            Dictionary<String, TransformType> curDict = null;
+
+            while (!reader.EndOfStream) {
+                String line = TrimFGDLine(reader.ReadLine());
+                if (line.Length == 0) continue;
+                while ((line.EndsWith("+") || line.EndsWith(":")) && !reader.EndOfStream) {
+                    line = line.TrimEnd('+', ' ', '\t') + TrimFGDLine(reader.ReadLine());
+                }
+
+                if (_sIncludeRegex.IsMatch(line)) {
+                    int start = line.IndexOf('"') + 1;
+                    int end = line.IndexOf('"', start);
+                    ParseFGD(line.Substring(start, end - start));                    
+                } else if (_sClassTypeRegex.IsMatch(line)) {
+                    int start = line.IndexOf('=') + 1;
+                    int end = Math.Max(line.IndexOf(':', start), line.IndexOf('[', start));
+                    if (end == -1) end = line.Length;
+                    curName = line.Substring(start, end - start).Trim();
+
+                    if (!stEntitiesDict.ContainsKey(curName)) {
+                        stEntitiesDict.Add(curName, new Dictionary<string,TransformType>());
+                    }
+
+                    curDict = stEntitiesDict[curName];
+
+                    var basesMatch = _sBaseDefRegex.Match(line);
+                    while (basesMatch.Success && basesMatch.Index < start) {
+                        int baseStart = basesMatch.Value.IndexOf('(') + 1;
+                        int baseEnd = basesMatch.Value.IndexOf(')', baseStart);
+                        var bases = basesMatch.Value.Substring(baseStart, baseEnd - baseStart).Split(',');
+
+                        foreach (var baseName in bases) {
+                            var trimmed = baseName.Trim();
+                            if (stEntitiesDict.ContainsKey(trimmed)) {
+                                foreach (var keyVal in stEntitiesDict[trimmed]) {
+                                    if (!curDict.ContainsKey(keyVal.Key)) {
+                                        curDict.Add(keyVal.Key, keyVal.Value);
+                                    }
+                                }
+                            } else {
+                                Console.WriteLine("Undefined parent for class {0} : {1}", curName, trimmed);
+                            }
+                        }
+
+                        basesMatch = basesMatch.NextMatch();
+                    }
+                }
+            }
+        }
+
         private static TransformType ParseTransformType(String str)
         {
             switch (str.ToLower()) {
