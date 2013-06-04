@@ -84,6 +84,7 @@ namespace VMFInstanceInserter
 
                         Regex pattern = new Regex("^replace[0-9]*$");
                         List<KeyValuePair<String, String>> replacements = new List<KeyValuePair<String, String>>();
+                        List<KeyValuePair<String, String>> matReplacements = new List<KeyValuePair<String, String>>();
 
                         foreach (KeyValuePair<String, VMFValue> keyVal in structure.Properties) {
                             if (pattern.IsMatch(keyVal.Key)) {
@@ -91,16 +92,22 @@ namespace VMFInstanceInserter
                                 if (split.Length < 1)
                                     continue;
 
+                                if (split[0].StartsWith("#")) {
+                                    matReplacements.Add(new KeyValuePair<String, String>(split[0].Substring(1).Trim(), keyVal.Value.String.Substring(split[0].Length + 1).Trim()));
+                                    continue;
+                                }
+
                                 if (!split[0].StartsWith("$")) {
                                     Console.WriteLine("Invalid property replacement name \"{0}\" - needs to begin with a $", split[0]);
                                     continue;
                                 }
 
-                                replacements.Add(new KeyValuePair<String, String>(split[0], keyVal.Value.String.Substring(split[0].Length + 1).TrimStart()));
+                                replacements.Add(new KeyValuePair<String, String>(split[0].Trim(), keyVal.Value.String.Substring(split[0].Length + 1).Trim()));
                             }
                         }
 
                         replacements = replacements.OrderByDescending(x => x.Key.Length).ToList();
+                        matReplacements = matReplacements.OrderByDescending(x => x.Key.Length).ToList();
 
                         TargetNameFixupStyle fixupStyle = (TargetNameFixupStyle) fixup_styleVal.Value;
                         String targetName = (targetnameVal != null ? targetnameVal.String : null);
@@ -133,7 +140,7 @@ namespace VMFInstanceInserter
 
                         foreach (VMFStructure worldStruct in vmf.World) {
                             if (worldStruct.Type == VMFStructureType.Group || worldStruct.Type == VMFStructureType.Solid) {
-                                VMFStructure clone = worldStruct.Clone(LastID, LastNodeID, fixupStyle, targetName, replacements);
+                                VMFStructure clone = worldStruct.Clone(LastID, LastNodeID, fixupStyle, targetName, replacements, matReplacements);
                                 clone.Transform(originVal, anglesVal);
                                 World.Structures.Add(clone);
                             }
@@ -143,7 +150,7 @@ namespace VMFInstanceInserter
 
                         foreach (VMFStructure rootStruct in vmf.Root) {
                             if (rootStruct.Type == VMFStructureType.Entity) {
-                                VMFStructure clone = rootStruct.Clone(LastID, LastNodeID, fixupStyle, targetName, replacements);
+                                VMFStructure clone = rootStruct.Clone(LastID, LastNodeID, fixupStyle, targetName, replacements, matReplacements);
                                 clone.Transform(originVal, anglesVal);
                                 Root.Structures.Insert(index++, clone);
                             }

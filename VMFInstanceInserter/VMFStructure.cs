@@ -366,7 +366,8 @@ namespace VMFInstanceInserter
         }
 
         private static readonly Dictionary<String, TransformType> stDefaultEntDict = new Dictionary<string,TransformType>();
-        private VMFStructure(VMFStructure clone, int idOffset, int nodeOffset, TargetNameFixupStyle fixupStyle, String targetName, List<KeyValuePair<String, String>> replacements)
+        private VMFStructure(VMFStructure clone, int idOffset, int nodeOffset, TargetNameFixupStyle fixupStyle, String targetName,
+            List<KeyValuePair<String, String>> replacements, List<KeyValuePair<String, String>> matReplacements)
         {
             Type = clone.Type;
 
@@ -415,7 +416,15 @@ namespace VMFInstanceInserter
                         kvClone.Value.String = String.Join(",", split);
                     }
                 } else {
-                    if (kvClone.Key == "groupid") {
+                    if (Type == VMFStructureType.Side && matReplacements != null && kvClone.Key == "material") {
+                        var material = kvClone.Value.String;
+                        foreach (KeyValuePair<String, String> repKeyVal in matReplacements) {
+                            if (material == repKeyVal.Key) {
+                                ((VMFStringValue) kvClone.Value).String = repKeyVal.Value;
+                                break;
+                            }
+                        }
+                    } else if (kvClone.Key == "groupid") {
                         ((VMFNumberValue) kvClone.Value).Value += idOffset;
                     } if (kvClone.Key == "nodeid") {
                         ((VMFNumberValue) kvClone.Value).Value += nodeOffset;
@@ -434,7 +443,7 @@ namespace VMFInstanceInserter
             }
 
             foreach (VMFStructure structure in clone.Structures)
-                Structures.Add(new VMFStructure(structure, idOffset, nodeOffset, fixupStyle, targetName, replacements));
+                Structures.Add(new VMFStructure(structure, idOffset, nodeOffset, fixupStyle, targetName, replacements, matReplacements));
 
             ID += idOffset;
         }
@@ -501,9 +510,10 @@ namespace VMFInstanceInserter
             writer.Flush();
         }
 
-        public VMFStructure Clone(int idOffset = 0, int nodeOffset = 0, TargetNameFixupStyle fixupStyle = TargetNameFixupStyle.None, String targetName = null, List<KeyValuePair<String, String>> replacements = null)
+        public VMFStructure Clone(int idOffset = 0, int nodeOffset = 0, TargetNameFixupStyle fixupStyle = TargetNameFixupStyle.None,
+            String targetName = null, List<KeyValuePair<String, String>> replacements = null, List<KeyValuePair<String, String>> matReplacements = null)
         {
-            return new VMFStructure(this, idOffset, nodeOffset, fixupStyle, targetName, replacements);
+            return new VMFStructure(this, idOffset, nodeOffset, fixupStyle, targetName, replacements, matReplacements);
         }
 
         public void Transform(VMFVector3Value translation, VMFVector3Value rotation)
