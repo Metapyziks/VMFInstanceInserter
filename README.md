@@ -80,25 +80,4 @@ This is how to make Hammer automatically run this tool when you compile a map.
 Adding Entity Definitions
 -------------------------
 
-Some entities will have properties that involve either angles or positions that
-need to be changed when the entity is inserted as an instance. To tell vmfii.exe
-which properties to correct, edit entities.txt.
-
-The file loosely follows the JSON format, with each object named as an entity's
-class name. Each of the keys inside an entity object represent a property name
-in an entity, and the value can be one of the following:
-
-	entity   // This property is an entity name and should be prepended /
-	         // appended with the fixup name you specified when placing the
-			 // instance
-		   
-	position // This property is a position and should be translated and rotated
-	         // when placing the instace
-			 
-	angle    // This property is an angle which should be rotated when placing
-	         // the instance
-			 
-	offset   // This property is a relative offset which should be rotated when
-	         // placing this instance
-
-TODO: Add example
+Edit: Now works using FGDs, I'll write an example soon.
