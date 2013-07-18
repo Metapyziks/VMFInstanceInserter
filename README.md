@@ -10,13 +10,10 @@ How to Use With Hammer
 
 This is how to make Hammer automatically run this tool when you compile a map.
 
-1.	Obtain vmfii.exe and (optionally) entities.txt.
+1.	Obtain vmfii.exe.
 	You can get vmfii.exe by compiling it yourself from the github repo or
-	downloading it. If you download it, make sure it is extracted somewhere that
-	you can remember for later. The entitiy definition file is optional, and is
-	used to ensure all entities function correctly after being placed in an
-	instance. The file entities.txt must be in the same directory as vmfii.exe
-	for the entity definitions to work.
+	downloading it. You will need to put vmfii.exe in the bin/ directory of the
+	source sdk branch you are using (the directory with vbsp.exe, vvis.exe etc).
 	
 2.	Launch Hammer and open the Run Map dialogue (File -> Run Map... or F9).
 	Switch to Expert mode by clicking the button at the bottom left.
@@ -45,10 +42,13 @@ This is how to make Hammer automatically run this tool when you compile a map.
 	dialogue that just popped up, find vmfii.exe.
 	
 	We need to tell vmfii.exe which map to work with, and where to save the new
-	map when it is done. We can tell it this by giving it parameters. In the
-	"Parameters" text box enter the following:
+	map when it is done. We can tell it this by giving it parameters. You can
+	also specify which FGD files should be used to work out what to do with
+	different entity classes. In the "Parameters" text box enter the following
+	(replacing "first.fgd,second.fgd,..." with the absolute paths to any FGD files
+	used by the mod you are mapping for):
 	
-	    $path\$file.$ext $path\$file.temp.$ext
+	    $path\$file.$ext $path\$file.temp.$ext --fgd "first.fgd,second.fgd,..."
 		
 	Hammer will replace each word with the '$' prefix with a relevant piece of
 	information, like "$file" is the name of the .vmf it is compiling. You may
@@ -77,9 +77,3 @@ This is how to make Hammer automatically run this tool when you compile a map.
 	enter that stuff in again unless you are setting up a new installation of
 	hammer.
 
-Adding Entity Definitions
--------------------------
-
-Edit: Now works using FGDs, I'll write a description soon. Basic example:
-
-    $path\$file.$ext $path\$file.temp.$ext --fgd "path/to/file.fgd,another/file/here.fgd"
