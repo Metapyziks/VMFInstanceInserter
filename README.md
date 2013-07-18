@@ -80,4 +80,6 @@ This is how to make Hammer automatically run this tool when you compile a map.
 Adding Entity Definitions
 -------------------------
 
-Edit: Now works using FGDs, I'll write an example soon.
+Edit: Now works using FGDs, I'll write a description soon. Basic example:
+
+    $path\$file.$ext $path\$file.temp.$ext --fgd "path/to/file.fgd,another/file/here.fgd"
