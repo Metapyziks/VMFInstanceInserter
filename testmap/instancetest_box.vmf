@@ -2,7 +2,7 @@ versioninfo
 {
 	"editorversion" "400"
 	"editorbuild" "5845"
-	"mapversion" "34"
+	"mapversion" "35"
 	"formatversion" "100"
 	"prefab" "0"
 }
@@ -20,7 +20,7 @@ viewsettings
 world
 {
 	"id" "1"
-	"mapversion" "34"
+	"mapversion" "35"
 	"classname" "worldspawn"
 	"detailmaterial" "detail/detailsprites"
 	"detailvbsp" "detail.vbsp"
@@ -880,13 +880,60 @@ entity
 		"logicalpos" "[0 4000]"
 	}
 }
+entity
+{
+	"id" "854"
+	"classname" "prop_static"
+	"angles" "0 0 0"
+	"fademindist" "-1"
+	"fadescale" "1"
+	"model" "models/props_c17/metalladder001.mdl"
+	"skin" "0"
+	"solid" "6"
+	"origin" "-36 16 0"
+	editor
+	{
+		"color" "255 255 0"
+		"visgroupshown" "1"
+		"visgroupautoshown" "1"
+		"logicalpos" "[0 0]"
+	}
+}
+entity
+{
+	"id" "881"
+	"classname" "func_ladderendpoint"
+	"angles" "0 0 0"
+	"origin" "-56 16 0"
+	editor
+	{
+		"color" "127 127 127"
+		"visgroupshown" "1"
+		"visgroupautoshown" "1"
+		"logicalpos" "[0 500]"
+	}
+}
+entity
+{
+	"id" "889"
+	"classname" "func_ladderendpoint"
+	"angles" "0 0 0"
+	"origin" "-56 16 128"
+	editor
+	{
+		"color" "127 127 127"
+		"visgroupshown" "1"
+		"visgroupautoshown" "1"
+		"logicalpos" "[0 500]"
+	}
+}
 cameras
 {
 	"activecamera" "0"
 	camera
 	{
-		"position" "[44.9698 47.2215 41.2279]"
-		"look" "[44.1377 46.8579 40.8083]"
+		"position" "[-74.5732 -156.683 133.284]"
+		"look" "[-74.4567 -155.706 133.104]"
 	}
 }
 cordon

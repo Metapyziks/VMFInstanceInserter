@@ -263,7 +263,12 @@ namespace VMFInstanceInserter
                             type = TransformType.EntityName;
                             break;
                         case "vector":
-                            type = TransformType.Offset;
+                            // Temporary hack to fix mistake on valve's part
+                            if (curName == "func_useableladder" && (name == "point0" || name == "point1")) {
+                                type = TransformType.Position;
+                            } else {
+                                type = TransformType.Offset;
+                            }
                             break;
                         case "sidelist":
                             type = TransformType.Identifier;
@@ -426,7 +431,7 @@ namespace VMFInstanceInserter
                         }
                     } else if (kvClone.Key == "groupid") {
                         ((VMFNumberValue) kvClone.Value).Value += idOffset;
-                    } if (kvClone.Key == "nodeid") {
+                    } else if (kvClone.Key == "nodeid") {
                         ((VMFNumberValue) kvClone.Value).Value += nodeOffset;
                     } else if (Type == VMFStructureType.Entity) {
                         TransformType trans = entDict.ContainsKey(kvClone.Key) ? entDict[kvClone.Key] : TransformType.None;
