@@ -10,13 +10,10 @@ How to Use With Hammer
 
 This is how to make Hammer automatically run this tool when you compile a map.
 
-1.	Obtain vmfii.exe and (optionally) entities.txt.
+1.	Obtain vmfii.exe.
 	You can get vmfii.exe by compiling it yourself from the github repo or
-	downloading it. If you download it, make sure it is extracted somewhere that
-	you can remember for later. The entitiy definition file is optional, and is
-	used to ensure all entities function correctly after being placed in an
-	instance. The file entities.txt must be in the same directory as vmfii.exe
-	for the entity definitions to work.
+	downloading it. You will need to put vmfii.exe in the bin/ directory of the
+	source sdk branch you are using (the directory with vbsp.exe, vvis.exe etc).
 	
 2.	Launch Hammer and open the Run Map dialogue (File -> Run Map... or F9).
 	Switch to Expert mode by clicking the button at the bottom left.
@@ -45,10 +42,13 @@ This is how to make Hammer automatically run this tool when you compile a map.
 	dialogue that just popped up, find vmfii.exe.
 	
 	We need to tell vmfii.exe which map to work with, and where to save the new
-	map when it is done. We can tell it this by giving it parameters. In the
-	"Parameters" text box enter the following:
+	map when it is done. We can tell it this by giving it parameters. You can
+	also specify which FGD files should be used to work out what to do with
+	different entity classes. In the "Parameters" text box enter the following
+	(replacing "first.fgd,second.fgd,..." with the absolute paths to any FGD files
+	used by the mod you are mapping for):
 	
-	    $path\$file.$ext $path\$file.temp.$ext
+	    $path\$file.$ext $path\$file.temp.$ext --fgd "first.fgd,second.fgd,..."
 		
 	Hammer will replace each word with the '$' prefix with a relevant piece of
 	information, like "$file" is the name of the .vmf it is compiling. You may
@@ -77,28 +77,3 @@ This is how to make Hammer automatically run this tool when you compile a map.
 	enter that stuff in again unless you are setting up a new installation of
 	hammer.
 
-Adding Entity Definitions
--------------------------
-
-Some entities will have properties that involve either angles or positions that
-need to be changed when the entity is inserted as an instance. To tell vmfii.exe
-which properties to correct, edit entities.txt.
-
-The file loosely follows the JSON format, with each object named as an entity's
-class name. Each of the keys inside an entity object represent a property name
-in an entity, and the value can be one of the following:
-
-	entity   // This property is an entity name and should be prepended /
-	         // appended with the fixup name you specified when placing the
-			 // instance
-		   
-	position // This property is a position and should be translated and rotated
-	         // when placing the instace
-			 
-	angle    // This property is an angle which should be rotated when placing
-	         // the instance
-			 
-	offset   // This property is a relative offset which should be rotated when
-	         // placing this instance
-
-TODO: Add example
