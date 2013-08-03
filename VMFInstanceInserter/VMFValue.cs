@@ -115,12 +115,23 @@ namespace VMFInstanceInserter
         public static readonly String Pattern = "-?[0-9]+(\\.[0-9]+)?(e-?[0-9]+)?";
         public static readonly int Order = 5;
 
-        public double Value { get; set; }
+        private double _value;
+        private String _origStr;
+
+        public double Value
+        {
+            get { return _value; }
+            set
+            {
+                _value = value;
+                _origStr = null;
+            }
+        }
 
         public override string String
         {
-            get { return Value.ToString(CultureInfo); }
-            set { Value = double.Parse(value, CultureInfo); }
+            get { return _origStr ?? Value.ToString(CultureInfo); }
+            set { Value = double.Parse(value, CultureInfo); _origStr = value; }
         }
 
         public override VMFValue Clone()
