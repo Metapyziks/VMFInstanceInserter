@@ -21,6 +21,11 @@
 			"lowerright" : "position",
 			"gibdir" : "offset"
 		},
+		"func_useableladder" :
+		{
+			"point0" : "position",
+			"point1" : "position"
+		},
 		"info_overlay" :
 		{
 			"BasisOrigin" : "position",
