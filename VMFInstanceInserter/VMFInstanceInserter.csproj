@@ -49,11 +49,6 @@
     <Compile Include="VMFStructure.cs" />
     <Compile Include="VMFValue.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="entities.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(TargetPath)" "C:\Program Files (x86)\Steam\steamapps\robertandsherman\sourcesdk\bin\source2009\bin\vmfii.exe" /Y /C /Q</PostBuildEvent>
