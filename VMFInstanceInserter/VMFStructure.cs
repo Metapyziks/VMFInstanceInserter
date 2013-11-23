@@ -5,8 +5,6 @@ using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-using ResourceLib;
-
 namespace VMFInstanceInserter
 {
     enum VMFStructureType
@@ -97,64 +95,6 @@ namespace VMFInstanceInserter
 
             foreach (String name in Enum.GetNames(typeof(VMFStructureType)))
                 stTypeDict.Add(name.ToLower(), (VMFStructureType) Enum.Parse(typeof(VMFStructureType), name));
-
-            String infoPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar + "entities.txt";
-
-            if (File.Exists(infoPath)) {
-                Console.WriteLine("Loading entities.txt");
-
-                try {
-                    var objs = Info.ParseFile(infoPath).Select(
-                        x => new KeyValuePair<String, InfoObject>(x.Name, x)).ToList();
-
-                    var inps = new List<KeyValuePair<string, TransformType>>();
-
-                    if (objs.Count == 1 && objs[0].Key == "unnamed") {
-                        var props = objs[0].Value["properties"] as InfoObject;
-                        var inpts = objs[0].Value["inputs"] as InfoObject;
-                        if (props != null) {
-                            objs = props.Select(x => new KeyValuePair<String, InfoObject>(x.Key, (InfoObject) x.Value)).ToList();
-                        } else {
-                            objs = new List<KeyValuePair<string, InfoObject>>();
-                        }
-                        if (inpts != null) {
-                            inps = inpts.Select(x => new KeyValuePair<String, TransformType>(
-                                x.Key, ParseTransformType(x.Value.AsString()))).ToList();
-                        }
-                    }
-
-                    foreach (var obj in objs) {
-                        if (!stEntitiesDict.ContainsKey(obj.Key))
-                            stEntitiesDict.Add(obj.Key, new Dictionary<string, TransformType>());
-
-                        foreach (KeyValuePair<String, InfoValue> keyVal in obj.Value) {
-                            if (keyVal.Value is InfoString) {
-                                TransformType trans = ParseTransformType(keyVal.Value.AsString());
-                                if (stEntitiesDict[obj.Key].ContainsKey(keyVal.Key)) {
-                                    if (trans == TransformType.None) {
-                                        stEntitiesDict[obj.Key].Remove(keyVal.Key);
-                                    } else {
-                                        stEntitiesDict[obj.Key][keyVal.Key] = trans;
-                                    }
-                                } else if (trans != TransformType.None) {
-                                    stEntitiesDict[obj.Key].Add(keyVal.Key, trans);
-                                }
-                            }
-                        }
-                    }
-
-                    foreach (var inp in inps) {
-                        if (!stInputsDict.ContainsKey(inp.Key))
-                            stInputsDict.Add(inp.Key, inp.Value);
-                        else
-                            stInputsDict[inp.Key] = inp.Value;
-                    }
-                } catch {
-                    Console.WriteLine("Error while reading entities.txt");
-                }
-            } else {
-                Console.WriteLine("File entities.txt not found!");
-            }
         }
 
         private static string TrimFGDLine(String line)
@@ -184,7 +124,7 @@ namespace VMFInstanceInserter
         }
 
         private static readonly Regex _sIncludeRegex = new Regex("^@include \"[^\"]+\"");
-        private static readonly Regex _sClassTypeRegex = new Regex("^@[A-Z][a-z]*Class( |=)");
+        private static readonly Regex _sClassTypeRegex = new Regex("^@[A-Z]([A-Za-z])*Class( |=)");
         private static readonly Regex _sBaseDefRegex = new Regex("base\\(\\s*[A-Za-z0-9_]+(\\s*,\\s*[A-Za-z0-9_]+)*\\s*\\)");
         private static readonly Regex _sParamDefRegex = new Regex("^[a-zA-Z0-9_]+\\s*\\(\\s*[A-Za-z0-9_]+\\s*\\)\\s*:.*$");
         public static void ParseFGD(String path)
@@ -211,13 +151,13 @@ namespace VMFInstanceInserter
                 if (_sIncludeRegex.IsMatch(line)) {
                     int start = line.IndexOf('"') + 1;
                     int end = line.IndexOf('"', start);
-                    ParseFGD(line.Substring(start, end - start));                    
+                    ParseFGD(Path.Combine(Path.GetDirectoryName(path), line.Substring(start, end - start)));
                 } else if (_sClassTypeRegex.IsMatch(line)) {
                     int start = line.IndexOf('=') + 1;
                     int end = Math.Max(line.IndexOf(':', start), line.IndexOf('[', start));
                     if (end == -1) end = line.Length;
                     curName = line.Substring(start, end - start).Trim();
-
+                    
                     if (!stEntitiesDict.ContainsKey(curName)) {
                         stEntitiesDict.Add(curName, new Dictionary<string,TransformType>());
                     }
@@ -250,6 +190,7 @@ namespace VMFInstanceInserter
                     int end = line.IndexOf(')', start);
                     string name = line.Substring(0, start - 1).TrimEnd();
                     string typeName = line.Substring(start, end - start).Trim().ToLower();
+
                     TransformType type = TransformType.None;
                     switch (typeName) {
                         case "angle":
