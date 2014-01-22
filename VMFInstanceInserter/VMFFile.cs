@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
@@ -65,6 +65,13 @@ namespace VMFInstanceInserter
         {
             Console.WriteLine("Resolving instances for " + OriginalPath + "...");
             List<VMFStructure> structures = Root.Structures;
+            
+            VMFVector3Value entityOriginVal = null;
+            VMFStructure realOrigin = structures.Find(x => x.Type == VMFStructureType.Entity && x["classname"].String != null && x["classname"].String == "func_instance_origin");
+            if (realOrigin != null)
+            {
+                entityOriginVal = (realOrigin["origin"] as VMFVector3Value);
+            }
 
             int autoName = 0;
 
@@ -73,91 +80,98 @@ namespace VMFInstanceInserter
 
                 if (structure.Type == VMFStructureType.Entity) {
                     VMFValue classnameVal = structure["classname"];
-                    if (classnameVal != null && classnameVal.String == "func_instance") {
-                        structures.RemoveAt(i);
 
-                        VMFStringValue fileVal = structure["file"] as VMFStringValue;
-                        VMFVector3Value originVal = (structure["origin"] as VMFVector3Value) ?? new VMFVector3Value { X = 0, Y = 0, Z = 0 };
-                        VMFVector3Value anglesVal = (structure["angles"] as VMFVector3Value) ?? new VMFVector3Value { Pitch = 0, Roll = 0, Yaw = 0 };
-                        VMFNumberValue fixup_styleVal = (structure["fixup_style"] as VMFNumberValue) ?? new VMFNumberValue { Value = 0 };
-                        VMFValue targetnameVal = structure["targetname"];
+                    if (classnameVal != null) switch(classnameVal.String) { 
+                        case "func_instance":
+                            structures.RemoveAt(i);
 
-                        Regex pattern = new Regex("^replace[0-9]*$");
-                        List<KeyValuePair<String, String>> replacements = new List<KeyValuePair<String, String>>();
-                        List<KeyValuePair<String, String>> matReplacements = new List<KeyValuePair<String, String>>();
+                            VMFStringValue fileVal = structure["file"] as VMFStringValue;
+                            VMFVector3Value originVal = (structure["origin"] as VMFVector3Value) ?? new VMFVector3Value { X = 0, Y = 0, Z = 0 };
+                            if (entityOriginVal == null) entityOriginVal = originVal;
+                            VMFVector3Value anglesVal = (structure["angles"] as VMFVector3Value) ?? new VMFVector3Value { Pitch = 0, Roll = 0, Yaw = 0 };
+                            VMFNumberValue fixup_styleVal = (structure["fixup_style"] as VMFNumberValue) ?? new VMFNumberValue { Value = 0 };
+                            VMFValue targetnameVal = structure["targetname"];
 
-                        foreach (KeyValuePair<String, VMFValue> keyVal in structure.Properties) {
-                            if (pattern.IsMatch(keyVal.Key)) {
-                                String[] split = keyVal.Value.String.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                                if (split.Length < 1)
-                                    continue;
+                            Regex pattern = new Regex("^replace[0-9]*$");
+                            List<KeyValuePair<String, String>> replacements = new List<KeyValuePair<String, String>>();
+                            List<KeyValuePair<String, String>> matReplacements = new List<KeyValuePair<String, String>>();
 
-                                if (split[0].StartsWith("#")) {
-                                    matReplacements.Add(new KeyValuePair<String, String>(split[0].Substring(1).Trim(), keyVal.Value.String.Substring(split[0].Length + 1).Trim()));
-                                    continue;
+                            foreach (KeyValuePair<String, VMFValue> keyVal in structure.Properties) {
+                                if (pattern.IsMatch(keyVal.Key)) {
+                                    String[] split = keyVal.Value.String.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                                    if (split.Length < 1)
+                                        continue;
+
+                                    if (split[0].StartsWith("#")) {
+                                        matReplacements.Add(new KeyValuePair<String, String>(split[0].Substring(1).Trim(), keyVal.Value.String.Substring(split[0].Length + 1).Trim()));
+                                        continue;
+                                    }
+
+                                    if (!split[0].StartsWith("$")) {
+                                        Console.WriteLine("Invalid property replacement name \"{0}\" - needs to begin with a $", split[0]);
+                                        continue;
+                                    }
+
+                                    replacements.Add(new KeyValuePair<String, String>(split[0].Trim(), keyVal.Value.String.Substring(split[0].Length + 1).Trim()));
                                 }
+                            }
 
-                                if (!split[0].StartsWith("$")) {
-                                    Console.WriteLine("Invalid property replacement name \"{0}\" - needs to begin with a $", split[0]);
-                                    continue;
+                            replacements = replacements.OrderByDescending(x => x.Key.Length).ToList();
+                            matReplacements = matReplacements.OrderByDescending(x => x.Key.Length).ToList();
+
+                            TargetNameFixupStyle fixupStyle = (TargetNameFixupStyle) fixup_styleVal.Value;
+                            String targetName = (targetnameVal != null ? targetnameVal.String : null);
+
+                            if (fixupStyle != TargetNameFixupStyle.None && targetName == null)
+                                targetName = "AutoInstance" + (autoName++);
+
+                            if (fileVal == null) {
+                                Console.WriteLine("Invalid instance at (" + originVal.String + ")");
+                                continue;
+                            }
+
+                            Console.WriteLine("Inserting instance of {0} at ({1}), ({2})", fileVal.String, originVal.String, anglesVal.String);
+
+                            String file = fileVal.String;
+                            VMFFile vmf = null;
+
+                            if (stVMFCache.ContainsKey(file))
+                                vmf = stVMFCache[file];
+                            else {
+                                vmf = new VMFFile(file, Path.GetDirectoryName(OriginalPath));
+                                if (vmf.Root != null)
+                                    vmf.ResolveInstances();
+                            }
+
+                            if (vmf.Root == null) {
+                                Console.WriteLine("Could not insert!");
+                                continue;
+                            }
+
+                            foreach (VMFStructure worldStruct in vmf.World) {
+                                if (worldStruct.Type == VMFStructureType.Group || worldStruct.Type == VMFStructureType.Solid) {
+                                    VMFStructure clone = worldStruct.Clone(LastID, LastNodeID, fixupStyle, targetName, replacements, matReplacements);
+                                    clone.Transform(entityOriginVal, anglesVal);
+                                    World.Structures.Add(clone);
                                 }
-
-                                replacements.Add(new KeyValuePair<String, String>(split[0].Trim(), keyVal.Value.String.Substring(split[0].Length + 1).Trim()));
                             }
-                        }
 
-                        replacements = replacements.OrderByDescending(x => x.Key.Length).ToList();
-                        matReplacements = matReplacements.OrderByDescending(x => x.Key.Length).ToList();
+                            int index = i;
 
-                        TargetNameFixupStyle fixupStyle = (TargetNameFixupStyle) fixup_styleVal.Value;
-                        String targetName = (targetnameVal != null ? targetnameVal.String : null);
-
-                        if (fixupStyle != TargetNameFixupStyle.None && targetName == null)
-                            targetName = "AutoInstance" + (autoName++);
-
-                        if (fileVal == null) {
-                            Console.WriteLine("Invalid instance at (" + originVal.String + ")");
-                            continue;
-                        }
-
-                        Console.WriteLine("Inserting instance of {0} at ({1}), ({2})", fileVal.String, originVal.String, anglesVal.String);
-
-                        String file = fileVal.String;
-                        VMFFile vmf = null;
-
-                        if (stVMFCache.ContainsKey(file))
-                            vmf = stVMFCache[file];
-                        else {
-                            vmf = new VMFFile(file, Path.GetDirectoryName(OriginalPath));
-                            if (vmf.Root != null)
-                                vmf.ResolveInstances();
-                        }
-
-                        if (vmf.Root == null) {
-                            Console.WriteLine("Could not insert!");
-                            continue;
-                        }
-
-                        foreach (VMFStructure worldStruct in vmf.World) {
-                            if (worldStruct.Type == VMFStructureType.Group || worldStruct.Type == VMFStructureType.Solid) {
-                                VMFStructure clone = worldStruct.Clone(LastID, LastNodeID, fixupStyle, targetName, replacements, matReplacements);
-                                clone.Transform(originVal, anglesVal);
-                                World.Structures.Add(clone);
+                            foreach (VMFStructure rootStruct in vmf.Root) {
+                                if (rootStruct.Type == VMFStructureType.Entity) {
+                                    VMFStructure clone = rootStruct.Clone(LastID, LastNodeID, fixupStyle, targetName, replacements, matReplacements);
+                                    clone.Transform(entityOriginVal, anglesVal);
+                                    Root.Structures.Insert(index++, clone);
+                                }
                             }
-                        }
 
-                        int index = i;
-
-                        foreach (VMFStructure rootStruct in vmf.Root) {
-                            if (rootStruct.Type == VMFStructureType.Entity) {
-                                VMFStructure clone = rootStruct.Clone(LastID, LastNodeID, fixupStyle, targetName, replacements, matReplacements);
-                                clone.Transform(originVal, anglesVal);
-                                Root.Structures.Insert(index++, clone);
-                            }
-                        }
-
-                        LastID = Root.GetLastID();
-                        LastNodeID = Root.GetLastNodeID();
+                            LastID = Root.GetLastID();
+                            LastNodeID = Root.GetLastNodeID();
+                            break;
+                        case "func_instance_parms":
+                            structures.RemoveAt(i);
+                            break;
                     }
                 }
             }
