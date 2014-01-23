@@ -65,13 +65,6 @@ namespace VMFInstanceInserter
         {
             Console.WriteLine("Resolving instances for " + OriginalPath + "...");
             List<VMFStructure> structures = Root.Structures;
-            
-            VMFVector3Value entityOriginVal = null;
-            VMFStructure realOrigin = structures.Find(x => x.Type == VMFStructureType.Entity && x["classname"].String != null && x["classname"].String == "func_instance_origin");
-            if (realOrigin != null)
-            {
-                entityOriginVal = (realOrigin["origin"] as VMFVector3Value);
-            }
 
             int autoName = 0;
 
@@ -87,7 +80,6 @@ namespace VMFInstanceInserter
 
                             VMFStringValue fileVal = structure["file"] as VMFStringValue;
                             VMFVector3Value originVal = (structure["origin"] as VMFVector3Value) ?? new VMFVector3Value { X = 0, Y = 0, Z = 0 };
-                            if (entityOriginVal == null) entityOriginVal = originVal;
                             VMFVector3Value anglesVal = (structure["angles"] as VMFVector3Value) ?? new VMFVector3Value { Pitch = 0, Roll = 0, Yaw = 0 };
                             VMFNumberValue fixup_styleVal = (structure["fixup_style"] as VMFNumberValue) ?? new VMFNumberValue { Value = 0 };
                             VMFValue targetnameVal = structure["targetname"];
@@ -151,7 +143,7 @@ namespace VMFInstanceInserter
                             foreach (VMFStructure worldStruct in vmf.World) {
                                 if (worldStruct.Type == VMFStructureType.Group || worldStruct.Type == VMFStructureType.Solid) {
                                     VMFStructure clone = worldStruct.Clone(LastID, LastNodeID, fixupStyle, targetName, replacements, matReplacements);
-                                    clone.Transform(entityOriginVal, anglesVal);
+                                    clone.Transform(originVal, anglesVal);
                                     World.Structures.Add(clone);
                                 }
                             }
@@ -161,7 +153,7 @@ namespace VMFInstanceInserter
                             foreach (VMFStructure rootStruct in vmf.Root) {
                                 if (rootStruct.Type == VMFStructureType.Entity) {
                                     VMFStructure clone = rootStruct.Clone(LastID, LastNodeID, fixupStyle, targetName, replacements, matReplacements);
-                                    clone.Transform(entityOriginVal, anglesVal);
+                                    clone.Transform(originVal, anglesVal);
                                     Root.Structures.Insert(index++, clone);
                                 }
                             }
