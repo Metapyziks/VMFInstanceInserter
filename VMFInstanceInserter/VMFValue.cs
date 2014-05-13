@@ -112,7 +112,7 @@ namespace VMFInstanceInserter
 
     public class VMFNumberValue : VMFValue
     {
-        public static readonly String Pattern = "-?[0-9]+(\\.[0-9]+)?(e-?[0-9]+)?";
+        public static readonly String Pattern = "-?[0-9]+(\\.[0-9]+)?([eE]-?[0-9]+)?";
         public static readonly int Order = 5;
 
         private double _value;
