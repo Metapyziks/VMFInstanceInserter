@@ -69,14 +69,14 @@ namespace VMFInstanceInserter
                 String lin = rootName + ".lin";
                 String tempLin = rootName + ".temp.lin";
 
+                if (File.Exists(lin))
+                {
+                    Console.WriteLine(del + lin);
+                    File.Delete(lin);
+                }
+
                 if (File.Exists(tempLin))
                 {
-                    if (File.Exists(lin))
-                    {
-                        Console.WriteLine(del + lin);
-                        File.Delete(lin);
-                    }
-
                     Console.WriteLine(renaming, tempLin, lin);
                     File.Move(tempLin, lin);
                 }
