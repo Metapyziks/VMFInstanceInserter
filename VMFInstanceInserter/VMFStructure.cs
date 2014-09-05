@@ -203,6 +203,11 @@ namespace VMFInstanceInserter
                         case "target_source":
                             type = TransformType.EntityName;
                             break;
+                        case "vecline":
+                            // Single point axis helpers (see phys_motor, for example) are stored
+                            // as absolute world coordinates, not angles as one might expect.
+                            type = TransformType.Position;
+                            break;
                         case "vector":
                             // Temporary hack to fix mistake on valve's part
                             if (curName == "func_useableladder" && (name == "point0" || name == "point1")) {
