@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -44,10 +44,12 @@ namespace VMFInstanceInserter
             String vmf = paths[0];
             String rootName = Path.GetDirectoryName(vmf) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(vmf);
             String dest = (paths.Count >= 2 ? paths[1] : rootName + ".temp.vmf");
+            String del = "Deleting ";
+            String renaming = "Renaming {0} to {1}";
 
             if (cleanup) {
                 if (File.Exists(dest)) {
-                    Console.WriteLine("Deleting " + dest);
+                    Console.WriteLine(del + dest);
                     File.Delete(dest);
                 }
 
@@ -56,12 +58,27 @@ namespace VMFInstanceInserter
 
                 if (File.Exists(tempPrt)) {
                     if (File.Exists(prt)) {
-                        Console.WriteLine("Deleting " + prt);
+                        Console.WriteLine(del + prt);
                         File.Delete(prt);
                     }
 
-                    Console.WriteLine("Renaming " + tempPrt + " to " + prt);
+                    Console.WriteLine(renaming, tempPrt, prt);
                     File.Move(tempPrt, prt);
+                }
+
+                String lin = rootName + ".lin";
+                String tempLin = rootName + ".temp.lin";
+
+                if (File.Exists(lin))
+                {
+                    Console.WriteLine(del + lin);
+                    File.Delete(lin);
+                }
+
+                if (File.Exists(tempLin))
+                {
+                    Console.WriteLine(renaming, tempLin, lin);
+                    File.Move(tempLin, lin);
                 }
             } else {
                 foreach (String path in fgdpaths) {
