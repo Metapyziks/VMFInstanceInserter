@@ -126,7 +126,7 @@ namespace VMFInstanceInserter
         private static readonly Regex _sIncludeRegex = new Regex("^@include \"[^\"]+\"");
         private static readonly Regex _sClassTypeRegex = new Regex("^@[A-Z]([A-Za-z])*Class( |=)");
         private static readonly Regex _sBaseDefRegex = new Regex("base\\(\\s*[A-Za-z0-9_]+(\\s*,\\s*[A-Za-z0-9_]+)*\\s*\\)");
-        private static readonly Regex _sParamDefRegex = new Regex("^[a-zA-Z0-9_]+\\s*\\(\\s*[A-Za-z0-9_]+\\s*\\)\\s*:.*$");
+        private static readonly Regex _sParamDefRegex = new Regex("^[a-zA-Z0-9_]+\\s*\\(\\s*[A-Za-z0-9_]+\\s*\\)(\\s*readonly\\s*|\\s*):.*$");
         public static void ParseFGD(String path)
         {
             Console.WriteLine("Loading {0}", Path.GetFileName(path));
@@ -212,6 +212,13 @@ namespace VMFInstanceInserter
                             // Temporary hack to fix mistake on valve's part
                             if (curName == "func_useableladder" && (name == "point0" || name == "point1")) {
                                 type = TransformType.Position;
+                            } else if (curName == "info_overlay") {
+                                if (name == "BasisOrigin")
+                                    type = TransformType.Position;
+                                else if (name == "BasisNormal" || name == "BasisU" || name == "BasisV")
+                                    type = TransformType.Offset;
+                                else
+                                    type = TransformType.None;
                             } else {
                                 type = TransformType.Offset;
                             }
