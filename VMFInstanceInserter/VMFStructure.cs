@@ -80,6 +80,10 @@ namespace VMFInstanceInserter
             {
                 { "row[0-9]+", TransformType.Offset }
             } },
+            { VMFStructureType.Offsets, new Dictionary<String, TransformType>
+            {
+                { "row[0-9]+", TransformType.Offset }
+            } },
             { VMFStructureType.Offset_Normals, new Dictionary<String, TransformType>
             {
                 { "row[0-9]+", TransformType.Offset }
