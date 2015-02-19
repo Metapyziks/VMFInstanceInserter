@@ -70,7 +70,11 @@ namespace VMFInstanceInserter
                 { "origin", TransformType.Position },
                 { "angles", TransformType.Angle },
                 { "targetname", TransformType.EntityName },
-                { "parentname", TransformType.EntityName }
+                { "parentname", TransformType.EntityName },
+                { "lowerleft", TransformType.Position },
+                { "lowerright", TransformType.Position },
+                { "upperleft", TransformType.Position },
+                { "upperright", TransformType.Position }
             } },
             { VMFStructureType.DispInfo, new Dictionary<String, TransformType>
             {
