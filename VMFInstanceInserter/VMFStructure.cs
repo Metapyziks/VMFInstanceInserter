@@ -400,7 +400,7 @@ namespace VMFInstanceInserter
                         if (trans == TransformType.Identifier) {
                             kvClone.Value.OffsetIdentifiers(idOffset);
                         } else if (fixup && (kvClone.Key == "targetname" || trans == TransformType.EntityName) && fixupStyle != TargetNameFixupStyle.None && targetName != null) {
-                            ((VMFStringValue) kvClone.Value).String = FixupName(((VMFStringValue) kvClone.Value).String, fixupStyle, targetName);
+                            kvClone = new KeyValuePair<string, VMFValue>(kvClone.Key, new VMFStringValue { String = FixupName(kvClone.Value.String, fixupStyle, targetName) });
                         }
                     }
                 }
