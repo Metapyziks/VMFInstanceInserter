@@ -372,7 +372,7 @@ namespace VMFInstanceInserter
                 }
 
                 if (Type == VMFStructureType.Connections) {
-                    if (fixup && fixupStyle != TargetNameFixupStyle.None && targetName != null) {
+                    if (fixupStyle != TargetNameFixupStyle.None && targetName != null) {
                         String[] split = kvClone.Value.String.Split(',');
                         split[0] = FixupName(split[0], fixupStyle, targetName);
                         if (stInputsDict.ContainsKey(split[1])) {
