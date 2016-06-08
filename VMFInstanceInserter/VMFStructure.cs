@@ -282,14 +282,18 @@ namespace VMFInstanceInserter
 
         private static String FixupName(String name, TargetNameFixupStyle fixupStyle, String targetName)
         {
-            if (fixupStyle == TargetNameFixupStyle.None || targetName == null || name.StartsWith("@") || name.StartsWith("!"))
-                return name;
+            if (name.StartsWith("@"))
+            { // undocumented ! behaviour || name.StartsWith("!")) {
+                return name.Substring(1);
+            }
+            else if (targetName == null) return name;
 
-            switch (fixupStyle) {
+            switch (fixupStyle)
+            {
                 case TargetNameFixupStyle.Postfix:
-                    return name + targetName;
+                    return name + '-' + targetName;
                 case TargetNameFixupStyle.Prefix:
-                    return targetName + name;
+                    return targetName + '-' + name;
                 default:
                     return name;
             }
