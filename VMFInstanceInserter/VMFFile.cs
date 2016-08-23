@@ -23,10 +23,14 @@ namespace VMFInstanceInserter
 
             OriginalPath = (rootDir != null ? rootDir + Path.DirectorySeparatorChar : "") + path;
 
+            if (File.Exists(OriginalPath +  ".vmf") { OriginalPath += ".vmf"; };
+
             if (!File.Exists(OriginalPath)) {
                 if (rootDir != null && path.Contains('/') && path.Substring(0, path.IndexOf('/')) == rootDir.Substring(rootDir.LastIndexOf('\\') + 1))
                     OriginalPath = rootDir + Path.DirectorySeparatorChar + path.Substring(path.IndexOf('/') + 1);
-
+                
+                if (File.Exists(OriginalPath +  ".vmf") { OriginalPath += ".vmf"; };
+                
                 if (!File.Exists(OriginalPath)) {
                     Console.WriteLine("File \"" + path + "\" not found!");
                     return;
