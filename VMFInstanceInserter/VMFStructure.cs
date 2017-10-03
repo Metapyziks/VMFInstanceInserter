@@ -209,6 +209,7 @@ namespace VMFInstanceInserter
                             break;
                         case "target_destination":
                         case "target_source":
+                        case "filterclass":
                             type = TransformType.EntityName;
                             break;
                         case "vecline":
