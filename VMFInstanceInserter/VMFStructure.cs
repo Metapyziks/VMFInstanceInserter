@@ -132,7 +132,7 @@ namespace VMFInstanceInserter
         }
 
         private static readonly Regex _sIncludeRegex = new Regex("^@include \"[^\"]+\"");
-        private static readonly Regex _sClassTypeRegex = new Regex("^@[A-Z]([A-Za-z])*Class( |=)");
+        private static readonly Regex _sClassTypeRegex = new Regex("^@(?<classType>[A-Z]([A-Za-z])*Class)( |=)");
         private static readonly Regex _sBaseDefRegex = new Regex("base\\(\\s*[A-Za-z0-9_]+(\\s*,\\s*[A-Za-z0-9_]+)*\\s*\\)");
         private static readonly Regex _sParamDefRegex = new Regex("^[a-zA-Z0-9_]+\\s*\\(\\s*[A-Za-z0-9_]+\\s*\\)(\\s*readonly\\s*|\\s*):.*$");
         public static void ParseFGD(String path)
@@ -156,11 +156,13 @@ namespace VMFInstanceInserter
                     line = line.TrimEnd('+', ' ', '\t') + TrimFGDLine(reader.ReadLine());
                 }
 
+                Match match;
+
                 if (_sIncludeRegex.IsMatch(line)) {
                     int start = line.IndexOf('"') + 1;
                     int end = line.IndexOf('"', start);
                     ParseFGD(Path.Combine(Path.GetDirectoryName(path), line.Substring(start, end - start)));
-                } else if (_sClassTypeRegex.IsMatch(line)) {
+                } else if ((match = _sClassTypeRegex.Match(line)).Success) {
                     int start = line.IndexOf('=') + 1;
                     int end = Math.Max(line.IndexOf(':', start), line.IndexOf('[', start));
                     if (end == -1) end = line.Length;
@@ -171,6 +173,11 @@ namespace VMFInstanceInserter
                     }
 
                     curDict = stEntitiesDict[curName];
+
+                    // Don't rotate angles for brush entities
+                    if (match.Groups["classType"].Value.Equals("SolidClass", StringComparison.InvariantCultureIgnoreCase)) {
+                        curDict.Add("angles", TransformType.None);
+                    }
 
                     var basesMatch = _sBaseDefRegex.Match(line);
                     while (basesMatch.Success && basesMatch.Index < start) {
