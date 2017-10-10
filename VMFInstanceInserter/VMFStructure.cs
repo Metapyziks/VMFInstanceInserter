@@ -96,6 +96,7 @@ namespace VMFInstanceInserter
 
         private static readonly Dictionary<String, Dictionary<String, TransformType>> stEntitiesDict = new Dictionary<String, Dictionary<string, TransformType>>();
         private static readonly Dictionary<String, TransformType> stInputsDict = new Dictionary<String, TransformType>();
+        private static readonly HashSet<String> stBrushEntities = new HashSet<string>();
 
         static VMFStructure()
         {
@@ -174,9 +175,9 @@ namespace VMFInstanceInserter
 
                     curDict = stEntitiesDict[curName];
 
-                    // Don't rotate angles for brush entities
+                    // Check if class is a brush entity
                     if (match.Groups["classType"].Value.Equals("SolidClass", StringComparison.InvariantCultureIgnoreCase)) {
-                        curDict.Add("angles", TransformType.None);
+                        stBrushEntities.Add(curName);
                     }
 
                     var basesMatch = _sBaseDefRegex.Match(line);
@@ -389,27 +390,25 @@ namespace VMFInstanceInserter
                         }
                         kvClone.Value.String = String.Join(",", split);
                     }
-                } else {
-                    if (Type == VMFStructureType.Side && matReplacements != null && kvClone.Key == "material") {
-                        var material = kvClone.Value.String;
-                        foreach (KeyValuePair<String, String> repKeyVal in matReplacements) {
-                            if (material == repKeyVal.Key) {
-                                ((VMFStringValue) kvClone.Value).String = repKeyVal.Value;
-                                break;
-                            }
+                } else if (Type == VMFStructureType.Side && matReplacements != null && kvClone.Key == "material") {
+                    var material = kvClone.Value.String;
+                    foreach (KeyValuePair<String, String> repKeyVal in matReplacements) {
+                        if (material == repKeyVal.Key) {
+                            ((VMFStringValue) kvClone.Value).String = repKeyVal.Value;
+                            break;
                         }
-                    } else if (kvClone.Key == "groupid") {
-                        ((VMFNumberValue) kvClone.Value).Value += idOffset;
-                    } else if (kvClone.Key == "nodeid") {
-                        ((VMFNumberValue) kvClone.Value).Value += nodeOffset;
-                    } else if (Type == VMFStructureType.Entity) {
-                        TransformType trans = entDict.ContainsKey(kvClone.Key) ? entDict[kvClone.Key] : TransformType.None;
+                    }
+                } else if (kvClone.Key == "groupid") {
+                    ((VMFNumberValue) kvClone.Value).Value += idOffset;
+                } else if (kvClone.Key == "nodeid") {
+                    ((VMFNumberValue) kvClone.Value).Value += nodeOffset;
+                } else if (Type == VMFStructureType.Entity) {
+                    TransformType trans = entDict.ContainsKey(kvClone.Key) ? entDict[kvClone.Key] : TransformType.None;
 
-                        if (trans == TransformType.Identifier) {
-                            kvClone.Value.OffsetIdentifiers(idOffset);
-                        } else if (fixup && (kvClone.Key == "targetname" || trans == TransformType.EntityName) && fixupStyle != TargetNameFixupStyle.None && targetName != null) {
-                            kvClone = new KeyValuePair<string, VMFValue>(kvClone.Key, new VMFStringValue { String = FixupName(kvClone.Value.String, fixupStyle, targetName) });
-                        }
+                    if (trans == TransformType.Identifier) {
+                        kvClone.Value.OffsetIdentifiers(idOffset);
+                    } else if (fixup && (kvClone.Key == "targetname" || trans == TransformType.EntityName) && fixupStyle != TargetNameFixupStyle.None && targetName != null) {
+                        kvClone = new KeyValuePair<string, VMFValue>(kvClone.Key, new VMFStringValue { String = FixupName(kvClone.Value.String, fixupStyle, targetName) });
                     }
                 }
 
@@ -498,8 +497,9 @@ namespace VMFInstanceInserter
             if (stTransformDict.ContainsKey(Type))
                 transDict = stTransformDict[Type];
 
+            string className = null;
             if (Type == VMFStructureType.Entity) {
-                String className = this["classname"].String;
+                className = this["classname"].String;
                 if (className != null && stEntitiesDict.ContainsKey(className))
                     entDict = stEntitiesDict[className];
             }
@@ -532,6 +532,11 @@ namespace VMFInstanceInserter
                             break;
                     }
                 }
+            }
+
+            // Don't rotate structures inside a brush entity!
+            if (className != null && stBrushEntities.Contains(className)) {
+                rotation = new VMFVector3Value();
             }
 
             foreach (VMFStructure structure in Structures)
