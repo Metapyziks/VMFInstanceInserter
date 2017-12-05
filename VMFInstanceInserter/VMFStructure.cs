@@ -290,14 +290,14 @@ namespace VMFInstanceInserter
 
         private static String FixupName(String name, TargetNameFixupStyle fixupStyle, String targetName)
         {
-            if (fixupStyle == TargetNameFixupStyle.None || targetName == null || name.StartsWith("@") || name.StartsWith("!"))
-                return name;
-
-            switch (fixupStyle) {
+            if (targetName == null || name.StartsWith("!")) return name;
+            else if (name.StartsWith("@")) return name.Substring(1);
+            switch (fixupStyle)
+            {
                 case TargetNameFixupStyle.Postfix:
-                    return name + targetName;
+                    return name + '-' + targetName;
                 case TargetNameFixupStyle.Prefix:
-                    return targetName + name;
+                    return targetName + '-' + name;
                 default:
                     return name;
             }
@@ -376,7 +376,7 @@ namespace VMFInstanceInserter
                 }
 
                 if (Type == VMFStructureType.Connections) {
-                    if (fixup && fixupStyle != TargetNameFixupStyle.None && targetName != null) {
+                    if (fixupStyle != TargetNameFixupStyle.None && targetName != null) {
                         String[] split = kvClone.Value.String.Split(',');
                         split[0] = FixupName(split[0], fixupStyle, targetName);
                         if (stInputsDict.ContainsKey(split[1])) {
