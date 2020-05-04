@@ -176,7 +176,7 @@ namespace VMFInstanceInserter
 
                     // Don't rotate angles for brush entities
                     if (match.Groups["classType"].Value.Equals("SolidClass", StringComparison.InvariantCultureIgnoreCase)) {
-                        curDict.Add("angles", TransformType.None);
+                        curDict["angles"] = TransformType.None;
                     }
 
                     var basesMatch = _sBaseDefRegex.Match(line);
